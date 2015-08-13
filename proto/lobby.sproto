@@ -1,6 +1,27 @@
+
+.swat {
+	name 0 : string
+	hp 1 : integer
+	origin 2 : string
+	rotation 3 : integer
+}
+
+.mate {
+	session 0 :integer
+	swats 1 : *swat
+}
+
+.room {
+	id 0 : integer
+	capacity 1 : integer
+	mapid 2 : integer
+	mates 3 : *mate
+}
+
 join 1 {
 	request {
 		room 0 : integer
+		map 1 : integer
 	}
 	response {
 		session 0 : integer
@@ -8,11 +29,11 @@ join 1 {
 		port 2 : integer
 	}
 }
-mates 2 {
+report_formation 2 {
 	request {
-	
+		swats 0 : *swat
 	}
 	response {
-		count 0 : integer
+		room 0 : room
 	}
 }

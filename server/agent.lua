@@ -55,7 +55,10 @@ end
 local client_request = {}
 
 function client_request.join(msg)
-	local handle, host, port = roomkeeper.req.apply(msg.room)
+	local handle, host, port = roomkeeper.req.apply(msg.room, msg.map)
+	if not handle then
+		return nil  --TODO handle error
+	end
 	local r = snax.bind(handle , "room")
 	local session = assert(r.req.join(skynet.self(), U.key))
 	U.session = session
@@ -63,8 +66,9 @@ function client_request.join(msg)
 	return { session = session, host = host, port = port }
 end
 
-function client_request.mates(msg)
-	return {count=1}
+function client_request.report_formation(msg)
+	local room_info = room.req.report_formation(U.session, msg.swats)
+	return {room=room_info}
 end
 
 local function dispatch_client(_,_,name,msg)
