@@ -63,6 +63,10 @@ function client_request.join(msg)
 	return { session = session, host = host, port = port }
 end
 
+function client_request.mates(msg)
+	return {count=1}
+end
+
 local function dispatch_client(_,_,name,msg)
 	local f = assert(client_request[name])
 	skynet.ret(encode_proto(name, f(msg)))

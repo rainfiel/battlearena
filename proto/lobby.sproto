@@ -8,3 +8,11 @@ join 1 {
 		port 2 : integer
 	}
 }
+mates 2 {
+	request {
+	
+	}
+	response {
+		count 0 : integer
+	}
+}

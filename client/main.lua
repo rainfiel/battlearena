@@ -2,13 +2,14 @@ local socket = require "socket"
 local proto = require "proto"
 local timesync = require "timesync"
 
-local IP = "127.0.0.1"
+local IP = "106.186.119.67"
+-- local IP = "0.0.0.0"
 
 local fd = assert(socket.login {
 	host = IP,
 	port = 8001,
 	server = "sample",
-	user = "hello",
+	user = "helloo",
 	pass = "password",
 })
 
@@ -43,7 +44,7 @@ request(fd, "join", { room = 1 } , function(obj)
 end)
 
 for i=1,1000 do
-	timesync.sleep(1)
+	timesync.sleep(10)
 	if (i == 100 or i == 200 or i ==300 or i == 600) and udp then
 		local gtime = timesync.globaltime()
 		if gtime then
