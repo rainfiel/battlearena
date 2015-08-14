@@ -34,6 +34,16 @@ report_formation 2 {
 		swats 0 : *swat
 	}
 	response {
-		room 0 : room
+		ready 0 : boolean
+		room 1 : room
+	}
+}
+query_current_room 3 {
+	request {
+		until_ready 0 : boolean
+	}
+	response {
+		ready 0 : boolean
+		room 1 : room
 	}
 }

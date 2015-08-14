@@ -3,7 +3,6 @@ local snax = require "snax"
 
 local gate
 local users = {}
-local ready_cnt = 0
 
 local room = {
 	id = nil,
@@ -26,6 +25,14 @@ end
 
 local function is_full()
 	return mate_count() >= capacity()
+end
+
+local function formation_ready()
+	if not is_full() then return false end
+	for k, v in ipairs(room.mates) do
+		if not v.swats then return false end
+	end
+	return true
 end
 --------------------------------------------------------------------
 
@@ -55,29 +62,30 @@ function response.join(agent, secret)
 		session = gate.req.register(skynet.self(), secret),
 	}
 	users[user.session] = user
-	local mate = {session=user.session, swats={}}
+	local mate = {session=user.session, swats=nil}
 	table.insert(room.mates, mate)
-	-- room.mates[user.session] = mate
+	room.mates[user.session] = mate
 	return user.session
 end
 
 function response.report_formation(session, swats)
-	for k, v in ipairs(room.mates) do
-		if v.session == session then
-			print("report_formation", session, swats)
-			for a,b in ipairs(swats) do
-				for c,d in ipairs(b) do
-					print(c..":"..d)
-				end
+	local user = room.mates[session]
+	user.swats = swats
+
+	local ready = formation_ready()
+	if ready then
+		local obj = {ready=ready, room=room}
+		for k, v in pairs(users) do
+			if k ~= session then
+				v.agent.req.resp_room_ready(obj)
 			end
-			v.swats = swats
-			break
 		end
 	end
-	-- local user = room.mates[session]
-	-- user.swats = swats
-	ready_cnt = ready_cnt + 1
-	return room
+	return room, ready
+end
+
+function response.room_info()
+	return room, formation_ready()
 end
 
 function response.capacity()
