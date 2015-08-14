@@ -9,6 +9,7 @@ local U = {}
 local proto
 
 local room_ready_response
+local begin_fight_response
 
 local function decode_proto(msg, sz)
 	local blob = sproto.unpack(msg,sz)
@@ -56,6 +57,13 @@ function response.resp_room_ready(obj)
 	end
 end
 
+function response.resp_begin_fight(ok)
+	if begin_fight_response then
+		begin_fight_response(true, {ok=ok})
+		begin_fight_response = nil
+	end
+end
+
 function response.afk()
 	-- the connection is broken, but the user may back
 	snax.printf("AFK")
@@ -76,6 +84,11 @@ function client_request.join(msg)
 	return { session = session, host = host, port = port }
 end
 
+function client_request.leave(msg)
+	local room_info = room.req.room_info()
+	roomkeeper.req.leave(room_info.id, room_info.mapid)
+end
+
 function client_request.report_formation(msg)
 	local room_info, ready = room.req.report_formation(U.session, msg.swats)
 	snax.printf("%s(session:%s) reported formation", U.userid, U.session)
@@ -90,17 +103,25 @@ function client_request.query_current_room(msg, name)
 	if ready or not msg.until_ready then
 		return {ready=ready, room=room_info}
 	else
-		room_ready_response = skynet.response(function(obj)
-			return encode_proto(name, obj)
+		room_ready_response = skynet.response(function(...)
+			return encode_proto(name, ...)
 		end)
-		return false
+		return nil
 	end
+end
+
+function client_request.ready_to_fight(msg, name)
+	begin_fight_response = skynet.response(function( ... )
+		return encode_proto(name, ...)
+	end)
+	room.req.ready_to_fight(U.session)
+	return nil
 end
 
 local function dispatch_client(_,_,name,msg)
 	local f = assert(client_request[name])
 	local obj = f(msg, name)
-	if obj then
+	if obj ~= nil then
 		skynet.ret(encode_proto(name, obj))
 	end
 end

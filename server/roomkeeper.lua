@@ -36,6 +36,10 @@ function response.apply(roomid, mapid)
 	end
 end
 
+function response.leave(roomid, mapid)
+	-- body
+end
+
 -- todo : close room ?
 
 function init()

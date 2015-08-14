@@ -8,14 +8,16 @@
 
 .mate {
 	session 0 :integer
-	swats 1 : *swat
+	ready 1 : boolean
+	swats 2 : *swat
 }
 
 .room {
 	id 0 : integer
 	capacity 1 : integer
 	mapid 2 : integer
-	mates 3 : *mate
+	fighting 3 : boolean
+	mates 4 : *mate
 }
 
 join 1 {
@@ -45,5 +47,21 @@ query_current_room 3 {
 	response {
 		ready 0 : boolean
 		room 1 : room
+	}
+}
+leave 4 {
+	request {
+		abort 0 : boolean
+	}
+	response {
+		win 0 : boolean
+	}
+}
+ready_to_fight 5 {
+	request {
+
+	}
+	response {
+		ok 0 : boolean
 	}
 }

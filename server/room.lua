@@ -4,12 +4,20 @@ local snax = require "snax"
 local gate
 local users = {}
 
-local room = {
-	id = nil,
-	capacity = 2,
-	mapid = nil,
-	mates = {},
-}
+local ready_count = 0
+
+local room = nil
+
+local function init_room_data()
+	room = {
+		id = nil,
+		capacity = 2,
+		mapid = nil,
+		fighting = false,
+		mates = {},
+	}
+	ready_count = 0
+end
 
 local function mate_count()
 	local n = 0
@@ -34,6 +42,7 @@ local function formation_ready()
 	end
 	return true
 end
+
 --------------------------------------------------------------------
 
 --[[
@@ -62,10 +71,16 @@ function response.join(agent, secret)
 		session = gate.req.register(skynet.self(), secret),
 	}
 	users[user.session] = user
-	local mate = {session=user.session, swats=nil}
+	local mate = {session=user.session, ready=false, swats=nil}
 	table.insert(room.mates, mate)
 	room.mates[user.session] = mate
 	return user.session
+end
+
+function response.leave(session)
+	assert(users[session])
+	users[session] = nil
+	room.mates[session] = nil
 end
 
 function response.report_formation(session, swats)
@@ -84,6 +99,27 @@ function response.report_formation(session, swats)
 	return room, ready
 end
 
+function response.ready_to_fight(session)
+	local mate = room.mates[session]
+	assert(mate)
+	mate.ready = true
+
+	if formation_ready() then
+		room.fighting = true
+		for k, v in ipairs(room.mates) do
+			if not v.ready then
+				room.fighting = false
+				break
+			end
+		end
+	end
+	if room.fighting then
+		for k, v in pairs(users) do
+			v.agent.req.resp_begin_fight(true)
+		end
+	end
+end
+
 function response.room_info()
 	return room, formation_ready()
 end
@@ -100,10 +136,6 @@ function response.mapid()
 	return room.mapid
 end
 
-function response.leave(session)
-	users[session] = nil
-end
-
 function response.query(session)
 	local user = users[session]
 	-- todo: we can do more
@@ -113,6 +145,7 @@ function response.query(session)
 end
 
 function init(id, mapid, udpserver)
+	init_room_data()
 	room.id = id
 	room.mapid = mapid
 	gate = snax.bind(udpserver, "udpserver")
