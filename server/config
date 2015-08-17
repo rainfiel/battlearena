@@ -8,7 +8,7 @@ luaservice = "skynet/service/?.lua;server/?.lua"
 lualoader = "skynet/lualib/loader.lua"
 cpath = "skynet/cservice/?.so"
 snax = "server/?.lua"
-lua_path = "skynet/lualib/?.lua"
+lua_path = "skynet/lualib/?.lua;server/?.lua"
 lua_cpath = "skynet/luaclib/?.so"
 -- daemon = "./skynet.pid"
 

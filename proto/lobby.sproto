@@ -17,7 +17,13 @@
 	capacity 1 : integer
 	mapid 2 : integer
 	fighting 3 : boolean
-	mates 4 : *mate
+	winner 4 : integer
+	mates 5 : *mate
+}
+
+.resp_leave {
+	id 0 : integer
+	winner 1 : integer
 }
 
 join 1 {
@@ -54,7 +60,7 @@ leave 4 {
 		abort 0 : boolean
 	}
 	response {
-		win 0 : boolean
+		resp 0 : resp_leave
 	}
 }
 ready_to_fight 5 {
@@ -63,5 +69,14 @@ ready_to_fight 5 {
 	}
 	response {
 		ok 0 : boolean
+	}
+}
+queue_item 6 {
+	request {
+		index 0 : integer
+	}
+	response {
+		type 0 : string
+		msg 1 : string
 	}
 }

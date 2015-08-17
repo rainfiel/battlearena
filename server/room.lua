@@ -14,6 +14,7 @@ local function init_room_data()
 		capacity = 2,
 		mapid = nil,
 		fighting = false,
+		winner = nil,
 		mates = {},
 	}
 	ready_count = 0
@@ -43,6 +44,13 @@ local function formation_ready()
 	return true
 end
 
+local function broadcast(sender, type, data)
+	for k, v in pairs(users) do
+		if k ~= sender then
+			v.agent.req.resp(type, data)
+		end
+	end
+end
 --------------------------------------------------------------------
 
 --[[
@@ -74,6 +82,7 @@ function response.join(agent, secret)
 	local mate = {session=user.session, ready=false, swats=nil}
 	table.insert(room.mates, mate)
 	room.mates[user.session] = mate
+
 	return user.session
 end
 
@@ -81,6 +90,19 @@ function response.leave(session)
 	assert(users[session])
 	users[session] = nil
 	room.mates[session] = nil
+
+	local obj = {id=session}
+	local cnt = mate_count()
+	if cnt == 1 then
+		if not room.winner then
+			obj.winner = next(users)
+		end
+	elseif cnt == 0 then
+		obj.useless = true
+	end
+
+	broadcast(session, "resp_leave", obj)
+	return obj
 end
 
 function response.report_formation(session, swats)

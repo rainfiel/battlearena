@@ -2,6 +2,7 @@ local snax = require "snax"
 local skynet = require "skynet"
 local sprotoloader = require "sprotoloader"
 local sproto = require "sproto"
+local msgqueue = require "msgqueue"
 
 local roomkeeper
 local gate, room
@@ -10,6 +11,7 @@ local proto
 
 local room_ready_response
 local begin_fight_response
+local response_queue
 
 local function decode_proto(msg, sz)
 	local blob = sproto.unpack(msg,sz)
@@ -22,6 +24,9 @@ local function encode_proto(name, obj)
 	return sproto.pack(proto:response_encode(name, obj))
 end
 
+local function encode_type(typename, obj)
+	return proto:pencode(typename, obj)
+end
 
 function response.login(source, uid, sid, secret)
 	-- you may use secret to make a encrypted data stream
@@ -64,6 +69,11 @@ function response.resp_begin_fight(ok)
 	end
 end
 
+function response.resp(type, data)
+	local msg = encode_type(type, data)
+	response_queue:call({type=type, msg=msg})
+end
+
 function response.afk()
 	-- the connection is broken, but the user may back
 	snax.printf("AFK")
@@ -72,7 +82,7 @@ end
 local client_request = {}
 
 function client_request.join(msg)
-	local handle, host, port = roomkeeper.req.apply(msg.room, msg.map)
+	local handle, roomid, host, port = roomkeeper.req.apply(msg.room, msg.map)
 	if not handle then
 		return nil  --TODO handle error
 	end
@@ -80,13 +90,20 @@ function client_request.join(msg)
 	local session = assert(r.req.join(skynet.self(), U.key))
 	U.session = session
 	room = r
-	snax.printf("%s joined to room %d(mapid %d, session %s)", U.userid, msg.room, msg.map, session)
+	snax.printf("%s joined to room %d(mapid %d, session %s)", U.userid, roomid, msg.map, session)
 	return { session = session, host = host, port = port }
 end
 
 function client_request.leave(msg)
-	local room_info = room.req.room_info()
-	roomkeeper.req.leave(room_info.id, room_info.mapid)
+	snax.printf("%s(session:%s) leaved room", U.userid, U.session)
+	local obj = room.req.leave(U.session)
+
+	if obj.useless then
+		local room_info = room.req.room_info()
+		local resp = roomkeeper.req.close(room_info.id, room_info.mapid)
+	end
+	room = nil
+	return {resp=obj}
 end
 
 function client_request.report_formation(msg)
@@ -117,6 +134,17 @@ function client_request.ready_to_fight(msg, name)
 	room.req.ready_to_fight(U.session)
 	return nil
 end
+
+function client_request.queue_item(msg, name)
+	local resp = skynet.response(function( ... )
+		return encode_proto(name, ...)
+	end)
+	if not response_queue then
+		response_queue = msgqueue.new()
+	end
+	response_queue:add_resp(msg.index, resp)
+end
+
 
 local function dispatch_client(_,_,name,msg)
 	local f = assert(client_request[name])

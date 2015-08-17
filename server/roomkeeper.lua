@@ -2,6 +2,7 @@ local snax = require "snax"
 local host
 local port = 9999
 local udpgate
+local room_index = 0
 local rooms = {}
 local map_rooms = {}
 
@@ -10,20 +11,22 @@ function response.apply(roomid, mapid)
 	if roomid == 0 then
 		local maps = map_rooms[mapid]
 		if maps then
-			for _, rid in ipairs(maps) do
+			for rid in pairs(maps) do
 				local r = rooms[rid]
 				if r and not r.req.is_full() then
+					print("found")
 					room = r
 					roomid = rid
 				end
 			end
 		end
 		if room == nil then
-			roomid = #rooms + 1
+			roomid = room_index + 1
+			room_index = roomid
 			room = snax.newservice("room", roomid, mapid, udpgate.handle)
 			rooms[roomid] = room
 			if not map_rooms[mapid] then map_rooms[mapid] = {} end
-			table.insert(map_rooms[mapid], roomid)
+			map_rooms[mapid][roomid] = true
 		end
 	else
 		room = rooms[roomid]
@@ -31,13 +34,16 @@ function response.apply(roomid, mapid)
 			room = nil
 		end
 	end
-	if room  then
-		return room.handle , host, port
+	if room then
+		return room.handle, roomid, host, port
 	end
 end
 
-function response.leave(roomid, mapid)
-	-- body
+function response.close(roomid, mapid)
+	snax.printf("close room %d", roomid)
+	rooms[roomid] = nil
+	map_rooms[mapid][roomid] = nil
+		--TODO reuse room
 end
 
 -- todo : close room ?
