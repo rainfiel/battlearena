@@ -4,12 +4,14 @@
 	hp 1 : integer
 	origin 2 : string
 	rotation 3 : integer
+	index 4 : integer
 }
 
 .mate {
 	session 0 :integer
 	ready 1 : boolean
-	swats 2 : *swat
+	team_id 2 : integer
+	swats 3 : *swat
 }
 
 .room {
@@ -18,7 +20,8 @@
 	mapid 2 : integer
 	fighting 3 : boolean
 	winner 4 : integer
-	mates 5 : *mate
+	rseed 5 : integer
+	mates 6 : *mate
 }
 
 .resp_leave {

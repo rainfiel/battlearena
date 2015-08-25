@@ -28,6 +28,17 @@ local function encode_type(typename, obj)
 	return proto:pencode(typename, obj)
 end
 
+local function leave_room()
+	local obj = room.req.leave(U.session)
+
+	if obj.useless then
+		local room_info = room.req.room_info()
+		local resp = roomkeeper.req.close(room_info.id, room_info.mapid)
+	end
+	room = nil
+	return obj
+end
+
 function response.login(source, uid, sid, secret)
 	-- you may use secret to make a encrypted data stream
 	roomkeeper = snax.queryservice "roomkeeper"
@@ -76,7 +87,11 @@ end
 
 function response.afk()
 	-- the connection is broken, but the user may back
-	snax.printf("AFK")
+	snax.printf("%s(session:%s) AFK", U.userid, U.session)
+	--TEMP
+	if room then
+		leave_room()
+	end
 end
 
 local client_request = {}
@@ -96,13 +111,7 @@ end
 
 function client_request.leave(msg)
 	snax.printf("%s(session:%s) leaved room", U.userid, U.session)
-	local obj = room.req.leave(U.session)
-
-	if obj.useless then
-		local room_info = room.req.room_info()
-		local resp = roomkeeper.req.close(room_info.id, room_info.mapid)
-	end
-	room = nil
+	local obj = leave_room()
 	return {resp=obj}
 end
 

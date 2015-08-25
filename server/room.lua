@@ -15,6 +15,7 @@ local function init_room_data()
 		mapid = nil,
 		fighting = false,
 		winner = nil,
+		rseed = os.time(),
 		mates = {},
 	}
 	ready_count = 0
@@ -42,6 +43,14 @@ local function formation_ready()
 		if not v.swats then return false end
 	end
 	return true
+end
+
+local function get_mate(session)
+	for k, v in ipairs(room.mates) do
+		if v.session == session then
+			return v
+		end
+	end
 end
 
 local function broadcast(sender, type, data)
@@ -81,7 +90,6 @@ function response.join(agent, secret)
 	users[user.session] = user
 	local mate = {session=user.session, ready=false, swats=nil}
 	table.insert(room.mates, mate)
-	room.mates[user.session] = mate
 
 	return user.session
 end
@@ -89,12 +97,23 @@ end
 function response.leave(session)
 	assert(users[session])
 	users[session] = nil
-	room.mates[session] = nil
+	-- room.mates[session] = nil
+	local cnt = #room.mates
+	local idx = 0
+	for i=1, cnt do
+		if room.mates[i].session ~= session then
+			idx = idx + 1
+			room.mates[idx] = room.mates[i]
+		end
+	end
+	if idx == cnt - 1 then
+		room.mates[cnt] = nil
+	end
 
 	local obj = {id=session}
 	local cnt = mate_count()
 	if cnt == 1 then
-		if not room.winner then
+		if not room.winner and room.fighting then
 			obj.winner = next(users)
 		end
 	elseif cnt == 0 then
@@ -106,8 +125,11 @@ function response.leave(session)
 end
 
 function response.report_formation(session, swats)
-	local user = room.mates[session]
+	local user = get_mate(session)
+	assert(not user.swats)
 	user.swats = swats
+	ready_count = ready_count + 1
+	user.team_id = ready_count
 
 	local ready = formation_ready()
 	if ready then
@@ -122,7 +144,7 @@ function response.report_formation(session, swats)
 end
 
 function response.ready_to_fight(session)
-	local mate = room.mates[session]
+	local mate = get_mate(session)
 	assert(mate)
 	mate.ready = true
 
