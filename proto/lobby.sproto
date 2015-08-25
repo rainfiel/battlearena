@@ -1,4 +1,5 @@
 
+#### common types
 .swat {
 	name 0 : string
 	hp 1 : integer
@@ -23,12 +24,20 @@
 	rseed 5 : integer
 	mates 6 : *mate
 }
+#### common types end
 
+
+
+#### push msg types
 .resp_leave {
 	id 0 : integer
 	winner 1 : integer
 }
+#### push msg types end
 
+
+
+#### common message
 join 1 {
 	request {
 		room 0 : integer
