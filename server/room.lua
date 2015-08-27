@@ -124,6 +124,12 @@ function response.leave(session)
 	return obj
 end
 
+function response.reach(session, obj)
+	obj.id = session
+	broadcast(session, "resp_reach", obj)
+	return obj
+end
+
 function response.report_formation(session, swats)
 	local user = get_mate(session)
 	assert(not user.swats)

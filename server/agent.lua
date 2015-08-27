@@ -154,6 +154,10 @@ function client_request.queue_item(msg, name)
 	response_queue:add_resp(msg.index, resp)
 end
 
+function client_request.reach(msg)
+	local resp = room.req.reach(U.session, msg)
+	return {resp=resp}
+end
 
 local function dispatch_client(_,_,name,msg)
 	local f = assert(client_request[name])

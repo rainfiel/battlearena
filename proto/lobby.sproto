@@ -33,6 +33,13 @@
 	id 0 : integer
 	winner 1 : integer
 }
+.resp_reach {
+	id 0 : integer
+	swat_id 1 : integer
+	x 2 : integer
+	y 3 : integer
+	index 4 : integer
+}
 #### push msg types end
 
 
@@ -90,5 +97,16 @@ queue_item 6 {
 	response {
 		type 0 : string
 		msg 1 : string
+	}
+}
+reach 7 {
+	request {
+		swat_id 0 : integer
+		x 1 : integer
+		y 2 : integer
+		index 3 : integer
+	}
+	response {
+		resp 0 : resp_reach
 	}
 }
