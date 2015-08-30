@@ -73,9 +73,9 @@ function response.resp_room_ready(obj)
 	end
 end
 
-function response.resp_begin_fight(ok)
+function response.resp_begin_fight(stime)
 	if begin_fight_response then
-		begin_fight_response(true, {ok=ok})
+		begin_fight_response(true, {start_time=stime})
 		begin_fight_response = nil
 	end
 end

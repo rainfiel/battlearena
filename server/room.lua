@@ -16,6 +16,7 @@ local function init_room_data()
 		fighting = false,
 		winner = nil,
 		rseed = os.time(),
+		start_time = nil,
 		mates = {},
 	}
 	ready_count = 0
@@ -164,8 +165,9 @@ function response.ready_to_fight(session)
 		end
 	end
 	if room.fighting then
+		room.start_time = skynet.now()
 		for k, v in pairs(users) do
-			v.agent.req.resp_begin_fight(true)
+			v.agent.req.resp_begin_fight(room.start_time)
 		end
 	end
 end

@@ -22,7 +22,8 @@
 	fighting 3 : boolean
 	winner 4 : integer
 	rseed 5 : integer
-	mates 6 : *mate
+	start_time 6 : integer
+	mates 7 : *mate
 }
 #### common types end
 
@@ -87,7 +88,7 @@ ready_to_fight 5 {
 
 	}
 	response {
-		ok 0 : boolean
+		start_time 0 : integer
 	}
 }
 queue_item 6 {
