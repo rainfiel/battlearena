@@ -46,12 +46,13 @@ end
 local function timesync(session, localtime, from)
 	-- return globaltime .. localtime .. eventtime .. session , eventtime = 0xffffffff
 	local now = skynet.now()
-	socket.sendto(U, from, string.pack("<IIII", now, localtime, 0xffffffff, session))
+	socket.sendto(U, from, string.pack("<IIIII", now, localtime, 0xffffffff, session, 0))
 end
 
 local function udpdispatch(str, from)
-	local localtime, eventtime, session = string.unpack("<III", str, 9)
+	local localtime, eventtime, session, ptype = string.unpack("<IIII", str, 9)
 	local s = S[session]
+	snax.printf(session, ptype)
 	if s then
 		if s.address ~= from then
 			if crypt.hmac_hash(s.key, str:sub(9)) ~= str:sub(1,8) then
@@ -76,7 +77,7 @@ local function udpdispatch(str, from)
 			return
 		end
 		s.lastevent = eventtime
-		s.room.post.update(str:sub(9))
+		s.room.post.update(str:sub(9), ptype, session)
 	else
 		snax.printf("Invalid session %d from %s" , session, socket.udp_address(from))
 	end

@@ -3,10 +3,15 @@ local snax = require "snax"
 
 local gate
 local users = {}
-
 local ready_count = 0
-
 local room = nil
+
+local reliable_udp_package = {}
+local reliable_udp_index = 0
+
+local udp_normal=0
+local udp_reliable=1
+local udp_confirm=2
 
 local function init_room_data()
 	room = {
@@ -70,9 +75,31 @@ end
 	padding data
 ]]
 
-function accept.update(data)
+function accept.update(data, ptype, session)
 	local time = skynet.now()
+	if ptype == udp_reliable then
+		local idx = reliable_udp_index + 1
+		reliable_udp_index = idx
+		data = string.pack("<I", idx)..string.sub(data, 5)
+		reliable_udp_package[idx] = {data, {}}
+		snax.printf("..........udp_reliable")
+	elseif ptype == udp_confirm then
+		local idx = string.unpack("<I", data)
+		local package = reliable_udp_package[idx]
+		if package then
+			if not package[2][session] then
+				package[2][session] = true
+				table.insert(package[2], session)
+			end
+			snax.printf("......udp_confirm:"..session..#package[2])
+			if #package[2] == capacity() then
+				reliable_udp_package[idx] = nil
+			end
+		end
+		return
+	end
 	data = string.pack("<I", time) .. data
+
 	for s,v in pairs(users) do
 		gate.post.post(s, data)
 	end
