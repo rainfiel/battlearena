@@ -78,7 +78,7 @@ local function udpdispatch(str, from)
 
 		-- confirm package ignore timesync because of
 		-- localtime is the ticket index for server side.
-		if ptype == 0 then
+		if ptype ~= 1 then
 			if eventtime > s.time then
 				-- drop this package, and force time sync
 				return timesync(session, localtime, from)
