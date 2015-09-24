@@ -1,18 +1,13 @@
 local skynet = require "skynet"
 local snax = require "snax"
+local ticket = require "ticket"
 
 local gate
 local users = {}
 local ready_count = 0
 local room = nil
-
-local reliable_udp_package = {}
-local reliable_udp_index = 0
-local ticket_retry_timeout = 50 -- 500 ms
-
-local udp_normal=0
-local udp_confirm=1
--- local udp_reliable=1
+local ticket_mgr = nil
+local heartbeat_freq = 10 -- 200ms
 
 local function init_room_data()
 	room = {
@@ -68,97 +63,27 @@ local function broadcast(sender, type, data)
 	end
 end
 
---------------------------------------------------------------------
---ticket
-local function add_ticket(session, index, data)
-	local user = users[session]
-	if not user then return end
-	-- assert(not user.tickets[index])
-
-	-- client resend ticket, resp to it only
-	if user.tickets[index] then
-		local ticket = user.tickets[index]
-		local package = reliable_udp_package[ticket.s_index]
-		package.timestamp = skynet.now() + ticket_retry_timeout
-		gate.post.post(session, ticket.data)
-		return
-	end
-
-	local s_index = reliable_udp_index + 1
-	reliable_udp_index = s_index
-
-	-- change localtime to package index
-	data = string.pack("<I", s_index)..string.sub(data, 5)
-	local timestamp = skynet.now() + ticket_retry_timeout
-	reliable_udp_package[s_index] = {sender=session, c_index=index, timestamp=timestamp}
-
-	user.tickets[index] = {data=data, confirm={}, count=0, s_index=s_index}
-	snax.printf("%d send udp_reliable, s_index:%d", session, s_index)
-	return data
-end
-
-local function confirm_ticket(session, s_index)
-	local package = reliable_udp_package[s_index]
-	if not package then return end
-
-	local owner = users[package.sender]
-	if not owner then return end
-
-	local ticket = owner.tickets[package.c_index]
-	if not ticket then return end
-
-	local confirm = ticket.confirm
-	if confirm[session] then return end
-
-	confirm[session] = true
-	ticket.count = ticket.count + 1
-	snax.printf("...... %d confirm ticket %d", session, s_index)
-
-	if ticket.count >= capacity() then
-		owner.tickets[package.c_index] = nil
-		reliable_udp_package[s_index] = nil
-		snax.printf("ticket finished:%d", s_index)
-	end
-end
-
-local function get_ticket(package)
-	local owner = users[package.sender]
-	if not owner then return end
-
-	return owner.tickets[package.c_index]
-end
-
-local function update_ticket()
-	local remove = {}
+local function heartbeat()
+	local heartbeat_index = 0
 	while true do
-		local now = skynet.now()
-		for s_index, package in pairs(reliable_udp_package) do
-			if package.timestamp < now then
-				local ticket = get_ticket(package)
-				if ticket then
-					for session in pairs(users) do
-						if not ticket.confirm[session] then
-							snax.printf("repost ticket %d to %d", s_index, session)
-							gate.post.post(session, ticket.data)
-						end
-					end
-
-					package.timestamp = now + ticket_retry_timeout
-				else
-					table.insert(remove, s_index)
-				end
-			end
-
-			local cnt = #remove
-			for i=1, cnt do
-				reliable_udp_package[remove[i]] = nil
-				remove[i] = nil
-			end
+		local now = skynet.now() - room.start_time
+		heartbeat_index = heartbeat_index + 1
+		local data = string.pack("<II", now, heartbeat_index)
+		for session in pairs(users) do
+			gate.post.repost(session, data)
 		end
-		skynet.sleep(10)	-- 100 ms
+
+		skynet.sleep(heartbeat_freq)
 	end
 end
---------------------------------------------------------------------
+
+local function begin_fight()
+	room.start_time = skynet.now()
+	for k, v in pairs(users) do
+		v.agent.req.resp_begin_fight(room.start_time)
+	end
+	skynet.fork(heartbeat)
+end
 
 --[[
 	4 bytes localtime   -- ticket server id if confirm package
@@ -169,13 +94,7 @@ end
 ]]
 
 function accept.update(data, ptype, session)
-	if ptype > udp_confirm then
-		data = add_ticket(session, ptype, data)
-	elseif ptype == udp_confirm then
-		local s_index = string.unpack("<I", data)
-		confirm_ticket(session, s_index)
-		return
-	end
+	data = ticket_mgr:update(data, ptype, session)
 
 	if not data then return end
 
@@ -273,10 +192,7 @@ function response.ready_to_fight(session)
 		end
 	end
 	if room.fighting then
-		room.start_time = skynet.now()
-		for k, v in pairs(users) do
-			v.agent.req.resp_begin_fight(room.start_time)
-		end
+		begin_fight()
 	end
 end
 
@@ -309,8 +225,7 @@ function init(id, mapid, udpserver)
 	room.id = id
 	room.mapid = mapid
 	gate = snax.bind(udpserver, "udpserver")
-
-	skynet.fork(update_ticket)
+	ticket_mgr = ticket(users, gate)
 end
 
 function exit()

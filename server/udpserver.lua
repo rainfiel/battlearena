@@ -47,6 +47,15 @@ function accept.post(session, data)
 	end
 end
 
+function accept.repost(session, data)
+	local s = S[session]
+	if s and s.address then		
+		socket.sendto(U, s.address, data)
+	else
+		snax.printf("Session is invalid %d", session)
+	end
+end
+
 local function timesync(session, localtime, from)
 	-- return globaltime .. localtime .. eventtime .. session , eventtime = 0xffffffff
 	local now = skynet.now()
@@ -92,6 +101,9 @@ local function udpdispatch(str, from)
 			s.lastevent = eventtime
 		end
 
+		if ptype > 1 then
+			snax.printf("rec ticket, id(%d), time(%d)", ptype, s.time)
+		end
 		s.room.post.update(str:sub(9), ptype, session)
 	else
 		snax.printf("Invalid session %d from %s" , session, socket.udp_address(from))

@@ -1,11 +1,21 @@
 
 #### common types
+.grenade_data
+{
+	count 0 : integer
+}
+.grenades
+{
+	Flashbang 0 : grenade_data
+}
 .swat {
 	name 0 : string
 	hp 1 : integer
 	origin 2 : string
 	rotation 3 : integer
-	index 4 : integer
+	grenades 4 : grenades
+	breaching_charge 5 : integer
+	index 6 : integer
 }
 
 .mate {
