@@ -70,7 +70,11 @@ local function heartbeat()
 		heartbeat_index = heartbeat_index + 1
 		local data = string.pack("<II", now, heartbeat_index)
 		for session in pairs(users) do
-			gate.post.repost(session, data)
+			if ticket_mgr:all_confirmed(session) then
+				gate.post.repost(session, data)
+			else
+				snax.printf("%d heartbeat delayed:%d", session, now)
+			end
 		end
 
 		skynet.sleep(heartbeat_freq)

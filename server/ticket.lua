@@ -29,7 +29,7 @@ function mt:add_ticket(session, index, data)
 	if not user then return end
 	-- assert(not user.tickets[index])
 
-	-- client resend ticket, resp to it only
+	-- client resend ticket, resp to sender only
 	if user.tickets[index] then
 		local ticket = user.tickets[index]
 		local package = self.packages[ticket.s_index]
@@ -74,6 +74,17 @@ function mt:confirm_ticket(session, s_index)
 		self.packages[s_index] = nil
 		printf("ticket finished:%d", s_index)
 	end
+end
+
+function mt:all_confirmed(session)
+	for _, user in pairs(self.users) do
+		for _, ticket in pairs(user.tickets) do
+			if not ticket.confirm[session] then
+				return false
+			end
+		end
+	end
+	return true
 end
 
 function mt:get_ticket(package)
