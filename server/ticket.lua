@@ -13,7 +13,7 @@ mt.__index = mt
 function mt:init()
 	self.packages = {}
 	self.index = 0
-	self.retry_timeout = 50 --500ms
+	self.retry_timeout = 12 --120ms
 end
 
 function mt:user_count()
