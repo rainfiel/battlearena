@@ -7,7 +7,7 @@ local users = {}
 local ready_count = 0
 local room = nil
 local ticket_mgr = nil
-local heartbeat_freq = 10 -- 200ms
+local heartbeat_freq = 10 -- 100ms
 
 local function init_room_data()
 	room = {
