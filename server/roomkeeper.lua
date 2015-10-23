@@ -13,7 +13,7 @@ function response.apply(roomid, mapid)
 		if maps then
 			for rid in pairs(maps) do
 				local r = rooms[rid]
-				if r and not r.req.is_full() then
+				if r and r.req.is_available() then
 					print("found")
 					room = r
 					roomid = rid

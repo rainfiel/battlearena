@@ -216,8 +216,8 @@ function response.capacity()
 	return capacity()
 end
 
-function response.is_full()
-	return is_full()
+function response.is_available()
+	return not room.fighting and not is_full()
 end
 
 function response.mapid()
