@@ -81,8 +81,10 @@ function response.resp_begin_fight(stime)
 end
 
 function response.resp(type, data)
-	local msg = encode_type(type, data)
-	response_queue:call({type=type, msg=msg})
+	if response_queue then
+		local msg = encode_type(type, data)
+		response_queue:call({type=type, msg=msg})
+	end
 end
 
 function response.afk()
@@ -121,6 +123,7 @@ function client_request.report_formation(msg)
 	if ready then
 		snax.printf("formation is ready")
 	end
+	response_queue = nil
 	return {ready=ready, room=room_info}
 end
 

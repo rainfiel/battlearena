@@ -107,6 +107,14 @@ function accept.update(data, ptype, session)
 	end
 end
 
+function accept.timeout(session)
+	local user = users[session]
+	if user then
+		user.agent.req.afk()  --TODO not real afk
+		user.agent.req.resp("resp_leave", {id=session}) --tell self
+	end
+end
+
 function response.join(agent, secret)
 	if is_full() then
 		return false	-- max number of room

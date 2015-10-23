@@ -6,8 +6,8 @@ local snax = require "snax"
 local U
 local S = {}
 local SESSION = 0
-local package_timeout = 10 * 60 * 100	-- 10 mins
-local session_timeout = 10 * 60 * 100 * 3 -- 30 mins
+local package_timeout = 30 * 100	-- 0.5 mins
+local session_timeout = 3 * 60 * 100 -- 3 mins
 
 --[[
 	8 bytes hmac   crypt.hmac_hash(key, session .. data)
@@ -118,15 +118,16 @@ local function keepalive()
 		for session, s in pairs(S) do
 			i=i+1
 			if i > 100 then
-				skynet.sleep(3000)	-- 30s
+				skynet.sleep(300)	-- 30s
 				ti = skynet.now()
 				i = 1
 			end
 			if ti > s.time + session_timeout then
+				s.room.post.timeout(session)
 				S[session] = nil
 			end
 		end
-		skynet.sleep(6000)	-- 1 min
+		skynet.sleep(600)	-- 1 min
 	end
 end
 
