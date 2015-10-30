@@ -87,6 +87,10 @@ function response.resp(type, data)
 	end
 end
 
+function response.encode_type(...)
+	return encode_type(...)
+end
+
 function response.afk()
 	-- the connection is broken, but the user may back
 	snax.printf("%s(session:%s) AFK", U.userid, U.session)

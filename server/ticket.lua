@@ -1,7 +1,7 @@
 local skynet = require "skynet"
 
 function printf(fmt, ...)
-	skynet.error(string.format(fmt, ...))
+	-- skynet.error(string.format(fmt, ...))
 end
 
 local udp_normal=0
@@ -12,6 +12,7 @@ mt.__index = mt
 
 function mt:init()
 	self.packages = {}
+	self.raw = {}
 	self.index = 0
 	self.retry_timeout = 12 --120ms
 end
@@ -22,6 +23,10 @@ function mt:user_count()
 		user_count = user_count + 1
 	end
 	return user_count
+end
+
+function mt:serialize()
+	return table.concat(self.raw, "\n")
 end
 
 function mt:add_ticket(session, index, data)
@@ -48,6 +53,7 @@ function mt:add_ticket(session, index, data)
 
 	local tdata = string.pack("<I", skynet.now()) .. data
 	user.tickets[index] = {data=tdata, confirm={}, count=0, s_index=s_index}
+	self.raw[s_index] = tdata
 	printf("%d send udp_reliable, s_index:%d", session, s_index)
 	return data
 end

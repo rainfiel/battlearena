@@ -73,7 +73,7 @@ local function heartbeat()
 			if ticket_mgr:all_confirmed(session) then
 				gate.post.repost(session, data)
 			else
-				snax.printf("%d heartbeat delayed:%d", session, now)
+				-- snax.printf("%d heartbeat delayed:%d", session, now)
 			end
 		end
 
@@ -87,6 +87,18 @@ local function begin_fight()
 		v.agent.req.resp_begin_fight(room.start_time)
 	end
 	skynet.fork(heartbeat)
+end
+
+local function on_close(survival)
+	if not room.winner then return end
+
+	local header = survival.agent.req.encode_type("room", room)
+
+	local t = ticket_mgr:serialize()
+	
+	local f = io.open("record/test.rcd", "w")
+	f:write(header.."\t"..t)
+	f:close()
 end
 
 --[[
@@ -135,7 +147,8 @@ function response.join(agent, secret)
 end
 
 function response.leave(session)
-	assert(users[session])
+	local user = users[session]
+	assert(user)
 	users[session] = nil
 	-- room.mates[session] = nil
 	local cnt = #room.mates
@@ -155,9 +168,11 @@ function response.leave(session)
 	if cnt == 1 then
 		if not room.winner and room.fighting then
 			obj.winner = next(users)
+			room.winner = obj.winner
 		end
 	elseif cnt == 0 then
 		obj.useless = true
+		on_close(user)
 	end
 
 	broadcast(session, "resp_leave", obj)

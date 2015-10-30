@@ -102,7 +102,7 @@ local function udpdispatch(str, from)
 		end
 
 		if ptype > 1 then
-			snax.printf("rec ticket, id(%d), time(%d), eventtime(%d)", ptype, s.time, eventtime)
+			-- snax.printf("rec ticket, id(%d), time(%d), eventtime(%d)", ptype, s.time, eventtime)
 		end
 		s.room.post.update(str:sub(9), ptype, session)
 	else
