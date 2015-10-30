@@ -115,6 +115,12 @@ function client_request.join(msg)
 	return { session = session, host = host, port = port }
 end
 
+function client_request.cancel_join(msg)
+	snax.printf("%s(session:%s) cancel join room", U.userid, U.session)
+	leave_room()
+	return {ok=true}
+end
+
 function client_request.leave(msg)
 	snax.printf("%s(session:%s) leaved room", U.userid, U.session)
 	local obj = leave_room()

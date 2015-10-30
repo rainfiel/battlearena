@@ -67,7 +67,15 @@ join 1 {
 		port 2 : integer
 	}
 }
-report_formation 2 {
+cancel_join 2 {
+	request {
+
+	}
+	response {
+		ok 0 : boolean
+	}
+}
+report_formation 3 {
 	request {
 		swats 0 : *swat
 	}
@@ -76,7 +84,7 @@ report_formation 2 {
 		room 1 : room
 	}
 }
-query_current_room 3 {
+query_current_room 4 {
 	request {
 		until_ready 0 : boolean
 	}
@@ -85,7 +93,7 @@ query_current_room 3 {
 		room 1 : room
 	}
 }
-leave 4 {
+leave 5 {
 	request {
 		abort 0 : boolean
 	}
@@ -93,7 +101,7 @@ leave 4 {
 		resp 0 : resp_leave
 	}
 }
-ready_to_fight 5 {
+ready_to_fight 6 {
 	request {
 
 	}
@@ -101,7 +109,7 @@ ready_to_fight 5 {
 		start_time 0 : integer
 	}
 }
-queue_item 6 {
+queue_item 7 {
 	request {
 		index 0 : integer
 	}
@@ -110,7 +118,7 @@ queue_item 6 {
 		msg 1 : string
 	}
 }
-reach 7 {
+reach 8 {
 	request {
 		swat_id 0 : integer
 		x 1 : integer
