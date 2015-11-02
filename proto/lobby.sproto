@@ -16,6 +16,10 @@
 	grenades 4 : grenades
 	breaching_charge 5 : integer
 	index 6 : integer
+	pistol 7: string
+	weapon 8 : string
+	shield 9 : string
+	armor 10 : string
 }
 
 .mate {
