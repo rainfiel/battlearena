@@ -10,7 +10,6 @@ local U = {}
 local proto
 
 local room_ready_response
-local begin_fight_response
 local response_queue
 
 local function decode_proto(msg, sz)
@@ -29,6 +28,7 @@ local function encode_type(typename, obj)
 end
 
 local function leave_room()
+	if not room then return {id=U.session} end
 	local obj = room.req.leave(U.session)
 
 	if obj.useless then
@@ -36,6 +36,8 @@ local function leave_room()
 		local resp = roomkeeper.req.close(room_info.id, room_info.mapid)
 	end
 	room = nil
+	response_queue = nil
+	room_ready_response = nil
 	return obj
 end
 
@@ -70,13 +72,6 @@ function response.resp_room_ready(obj)
 	if room_ready_response then
 		room_ready_response(true, obj)
 		room_ready_response = nil
-	end
-end
-
-function response.resp_begin_fight(stime)
-	if begin_fight_response then
-		begin_fight_response(true, {start_time=stime})
-		begin_fight_response = nil
 	end
 end
 
@@ -133,7 +128,6 @@ function client_request.report_formation(msg)
 	if ready then
 		snax.printf("formation is ready")
 	end
-	response_queue = nil
 	return {ready=ready, room=room_info}
 end
 
@@ -150,11 +144,15 @@ function client_request.query_current_room(msg, name)
 end
 
 function client_request.ready_to_fight(msg, name)
-	begin_fight_response = skynet.response(function( ... )
-		return encode_proto(name, ...)
-	end)
+	snax.printf("%s(session:%s) ready_to_fight", U.userid, U.session)
 	room.req.ready_to_fight(U.session)
-	return nil
+	return {}
+end
+
+function client_request.loading_done()
+	snax.printf("%s(session:%s) loading_done", U.userid, U.session)
+	room.req.loading_done(U.session)
+	return {}
 end
 
 function client_request.queue_item(msg, name)

@@ -4,7 +4,6 @@ local ticket = require "ticket"
 
 local gate
 local users = {}
-local ready_count = 0
 local room = nil
 local ticket_mgr = nil
 local heartbeat_freq = 10 -- 100ms
@@ -12,7 +11,7 @@ local heartbeat_freq = 10 -- 100ms
 local function init_room_data()
 	room = {
 		id = nil,
-		capacity = 2,
+		capacity = 4,
 		mapid = nil,
 		fighting = false,
 		winner = nil,
@@ -20,7 +19,6 @@ local function init_room_data()
 		start_time = nil,
 		mates = {},
 	}
-	ready_count = 0
 end
 
 local function mate_count()
@@ -28,7 +26,7 @@ local function mate_count()
 	for _ in pairs(users) do
 		n = n + 1
 	end
-	return n
+	return n 
 end
 
 local function capacity()
@@ -41,23 +39,33 @@ end
 
 local function formation_ready()
 	if not is_full() then return false end
-	for k, v in ipairs(room.mates) do
-		if not v.swats then return false end
+	for i=1, room.capacity do
+		local mate = room.mates[i]
+		if not mate or not mate.swats then return false end
 	end
 	return true
 end
 
 local function get_mate(session)
-	for k, v in ipairs(room.mates) do
-		if v.session == session then
-			return v
+	for i=1, room.capacity do
+		local mate = room.mates[i]
+		if mate and mate.session == session then
+			return mate
+		end
+	end
+end
+
+local function find_seat()
+	for i=1, room.capacity do
+		if not room.mates[i] then
+			return i
 		end
 	end
 end
 
 local function broadcast(sender, type, data)
 	for k, v in pairs(users) do
-		if k ~= sender then
+		if not sender or k ~= sender then
 			v.agent.req.resp(type, data)
 		end
 	end
@@ -83,9 +91,8 @@ end
 
 local function begin_fight()
 	room.start_time = skynet.now()
-	for k, v in pairs(users) do
-		v.agent.req.resp_begin_fight(room.start_time)
-	end
+	snax.printf("%s fight begin!", room.id)
+	broadcast(nil, "resp_go", {start_time=room.start_time})
 	skynet.fork(heartbeat)
 end
 
@@ -95,7 +102,7 @@ local function on_close(survival)
 	local header = survival.agent.req.encode_type("room", room)
 
 	local t = ticket_mgr:serialize()
-	
+
 	local f = io.open("record/test.rcd", "w")
 	f:write(header.."\t"..t)
 	f:close()
@@ -140,8 +147,9 @@ function response.join(agent, secret)
 	}
 	users[user.session] = user
 
-	local mate = {session=user.session, ready=false, swats=nil}
-	table.insert(room.mates, mate)
+	local mate = {session=user.session, index=find_seat(), ready=false, swats=nil}
+	room.mates[mate.index] = mate
+	snax.printf("seat num:%d", mate.index)
 
 	return user.session
 end
@@ -151,16 +159,16 @@ function response.leave(session)
 	assert(user)
 	users[session] = nil
 	-- room.mates[session] = nil
-	local cnt = #room.mates
-	local idx = 0
-	for i=1, cnt do
-		if room.mates[i].session ~= session then
-			idx = idx + 1
-			room.mates[idx] = room.mates[i]
+
+	for i=1, room.capacity do
+		local mate = room.mates[i]
+		if mate then
+			if mate.session == session then
+				room.mates[i] = nil
+			elseif not room.fighting then
+				mate.ready = false
+			end
 		end
-	end
-	if idx == cnt - 1 then
-		room.mates[cnt] = nil
 	end
 
 	local obj = {id=session}
@@ -189,8 +197,7 @@ function response.report_formation(session, swats)
 	local user = get_mate(session)
 	assert(not user.swats)
 	user.swats = swats
-	ready_count = ready_count + 1
-	user.team_id = ready_count
+	broadcast(session, "resp_mate_change", {type="add", room=room})
 
 	local ready = formation_ready()
 	if ready then
@@ -208,13 +215,32 @@ function response.ready_to_fight(session)
 	local mate = get_mate(session)
 	assert(mate)
 	mate.ready = true
+	mate.client_loaded = false
+
+	if formation_ready() then
+		room.begin_loading = true
+		for k, v in pairs(room.mates) do
+			if not v.ready then
+				room.begin_loading = false
+				break
+			end
+		end
+	end
+	if room.begin_loading then
+		broadcast(nil, "resp_loading", {})
+	end
+end
+
+function response.loading_done(session)
+	local mate = get_mate(session)
+	assert(mate)
+	mate.client_loaded = true
 
 	if formation_ready() then
 		room.fighting = true
-		for k, v in ipairs(room.mates) do
-			if not v.ready then
+		for k, v in pairs(room.mates) do
+			if not v.ready or not v.client_loaded then
 				room.fighting = false
-				break
 			end
 		end
 	end

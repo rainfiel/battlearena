@@ -25,7 +25,7 @@
 .mate {
 	session 0 :integer
 	ready 1 : boolean
-	team_id 2 : integer
+	index 2 : integer
 	swats 3 : *swat
 }
 
@@ -54,6 +54,16 @@
 	x 2 : integer
 	y 3 : integer
 	index 4 : integer
+}
+.resp_mate_change {
+	type 0 : string
+	room 1 : room
+}
+.resp_loading {
+	
+}
+.resp_go {
+	start_time 0 : integer
 }
 #### push msg types end
 
@@ -110,7 +120,7 @@ ready_to_fight 6 {
 
 	}
 	response {
-		start_time 0 : integer
+		
 	}
 }
 queue_item 7 {
@@ -132,4 +142,8 @@ reach 8 {
 	response {
 		resp 0 : resp_reach
 	}
+}
+loading_done 9 {
+	request {}
+	response {}
 }
