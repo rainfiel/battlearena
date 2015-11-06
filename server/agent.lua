@@ -103,7 +103,7 @@ function client_request.join(msg)
 		return nil  --TODO handle error
 	end
 	local r = snax.bind(handle , "room")
-	local session = assert(r.req.join(skynet.self(), U.key))
+	local session = assert(r.req.join(skynet.self(), U.key, U.userid))
 	U.session = session
 	room = r
 	snax.printf("%s joined to room %d(mapid %d, session %s)", U.userid, roomid, msg.map, session)

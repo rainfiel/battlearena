@@ -24,9 +24,10 @@
 
 .mate {
 	session 0 :integer
-	ready 1 : boolean
-	index 2 : integer
-	swats 3 : *swat
+	name 1 : string
+	ready 2 : boolean
+	index 3 : integer
+	swats 4 : *swat
 }
 
 .room {

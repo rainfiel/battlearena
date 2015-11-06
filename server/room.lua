@@ -134,7 +134,7 @@ function accept.timeout(session)
 	end
 end
 
-function response.join(agent, secret)
+function response.join(agent, secret, userid)
 	if is_full() then
 		return false	-- max number of room
 	end
@@ -147,7 +147,7 @@ function response.join(agent, secret)
 	}
 	users[user.session] = user
 
-	local mate = {session=user.session, index=find_seat(), ready=false, swats=nil}
+	local mate = {name=userid, session=user.session, index=find_seat(), ready=false, swats=nil}
 	room.mates[mate.index] = mate
 	snax.printf("seat num:%d", mate.index)
 
