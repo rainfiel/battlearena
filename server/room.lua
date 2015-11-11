@@ -103,7 +103,9 @@ local function on_close(survival)
 
 	local t = ticket_mgr:serialize()
 
-	local f = io.open("record/test.rcd", "w")
+	local d = os.date("*t")
+	local fname = string.format("%d-%d%d%d%d%d", room.id, d.year, d.month, d.day, d.hour, d.sec)
+	local f = io.open(string.format("record/%s.rcd", fname), "w")
 	f:write(header.."\t"..t)
 	f:close()
 end
