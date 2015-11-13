@@ -29,19 +29,29 @@ local function mate_count()
 	return n 
 end
 
+local function swat_count()
+	local n = 0
+	for i=1, room.capacity do
+		local mate = room.mates[i]
+		if mate then
+			n = n + (mate.swats and #mate.swats or 1)
+		end
+	end
+	return n 
+end
+
 local function capacity()
 	return room.capacity
 end
 
 local function is_full()
-	return mate_count() >= capacity()
+	return swat_count() >= capacity()
 end
 
 local function formation_ready()
 	if not is_full() then return false end
-	for i=1, room.capacity do
-		local mate = room.mates[i]
-		if not mate or not mate.swats then return false end
+	for k, v in ipairs(room.mates) do
+		if not v.swats then return false end
 	end
 	return true
 end
@@ -55,11 +65,43 @@ local function get_mate(session)
 	end
 end
 
-local function find_seat()
+local function get_mate_by_index(idx)
 	for i=1, room.capacity do
-		if not room.mates[i] then
-			return i
+		local mate = room.mates[i]
+		if mate and mate.index == idx then
+			return mate
 		end
+	end
+end
+
+local function find_seat()
+	local max_seat = room.capacity / 2
+	local team_1 = 0
+	for i=1, room.capacity, 2 do
+		local mate = get_mate_by_index(i)
+		if mate then
+			team_1 = team_1 + (mate.swats and #mate.swats or 1)
+		else
+			if team_1 < max_seat then
+				return 2 * (team_1+1) - 1
+			end
+		end
+	end
+	local team_2 = 0
+	for i=2, room.capacity, 2 do
+		local mate = get_mate_by_index(i)
+		if mate then
+			team_2 = team_2 + (mate.swats and #mate.swats or 1)
+		else
+			if team_2 <  max_seat then
+				return 2 * (team_2+1)
+			end
+		end
+	end
+	if team_1 <= team_2 then
+		return 2 * (team_1+1) - 1
+	else
+		return 2 * (team_2+1)
 	end
 end
 
@@ -136,6 +178,9 @@ function accept.timeout(session)
 	end
 end
 
+local function sort_mate(a, b)
+	return a.index < b.index
+end
 function response.join(agent, secret, userid)
 	if is_full() then
 		return false	-- max number of room
@@ -150,7 +195,8 @@ function response.join(agent, secret, userid)
 	users[user.session] = user
 
 	local mate = {name=userid, session=user.session, index=find_seat(), ready=false, swats=nil}
-	room.mates[mate.index] = mate
+	table.insert(room.mates, mate)
+	table.sort(room.mates, sort_mate)
 	snax.printf("seat num:%d", mate.index)
 
 	return user.session
@@ -162,15 +208,21 @@ function response.leave(session)
 	users[session] = nil
 	-- room.mates[session] = nil
 
+	local index = 0
 	for i=1, room.capacity do
 		local mate = room.mates[i]
 		if mate then
-			if mate.session == session then
-				room.mates[i] = nil
-			elseif not room.fighting then
-				mate.ready = false
+			if mate.session ~= session then
+				index = index + 1
+				room.mates[index] = mate
+				if not room.fighting then
+					mate.ready = false
+				end
 			end
 		end
+	end
+	for i=index+1, room.capacity do
+		room.mates[i] = nil
 	end
 
 	local obj = {id=session}
@@ -197,7 +249,6 @@ end
 
 function response.report_formation(session, swats)
 	local user = get_mate(session)
-	assert(not user.swats)
 	user.swats = swats
 	broadcast(session, "resp_mate_change", {type="add", room=room})
 
@@ -221,7 +272,7 @@ function response.ready_to_fight(session)
 
 	if formation_ready() then
 		room.begin_loading = true
-		for k, v in pairs(room.mates) do
+		for k, v in ipairs(room.mates) do
 			if not v.ready then
 				room.begin_loading = false
 				break

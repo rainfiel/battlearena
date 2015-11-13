@@ -124,7 +124,7 @@ end
 
 function client_request.report_formation(msg)
 	local room_info, ready = room.req.report_formation(U.session, msg.swats)
-	snax.printf("%s(session:%s) reported formation", U.userid, U.session)
+	snax.printf("%s(session:%s) reported formation, swat count(%d)", U.userid, U.session, #msg.swats)
 	if ready then
 		snax.printf("formation is ready")
 	end
