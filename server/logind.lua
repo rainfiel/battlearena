@@ -2,6 +2,8 @@ local login = require "snax.loginserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
 
+local client_version = skynet.getenv("client_version")
+
 local server = {
 	host = skynet.getenv "login_address",
 	port = tonumber(skynet.getenv "login_port"),
@@ -14,8 +16,12 @@ local user_online = {}
 local user_login = {}
 
 function server.auth_handler(token)
-	-- the token is base64(user)@base64(server):base64(password)
-	local user, server, password = token:match("([^@]+)@([^:]+):(.+)")
+	-- the token is base64(version)@base64(user)@base64(server):base64(password)
+	local version, user, server, password = token:match("([^@]+)@([^@]+)@([^:]+):(.+)")
+	
+	version = crypt.base64decode(version)
+	assert(version == client_version, "old client version:"..version)
+
 	user = crypt.base64decode(user)
 	server = crypt.base64decode(server)
 	password = crypt.base64decode(password)
