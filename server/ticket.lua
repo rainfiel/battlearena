@@ -1,7 +1,7 @@
 local skynet = require "skynet"
 
 function printf(fmt, ...)
-	-- skynet.error(string.format(fmt, ...))
+	skynet.error(string.format(fmt, ...))
 end
 
 local udp_normal=0
@@ -34,11 +34,12 @@ function mt:add_ticket(session, index, data)
 	if not user then return end
 	-- assert(not user.tickets[index])
 
+	local now = skynet.now()
 	-- client resend ticket, resp to sender only
 	if user.tickets[index] then
 		local ticket = user.tickets[index]
 		local package = self.packages[ticket.s_index]
-		package.timestamp = skynet.now() + self.retry_timeout
+		package.timestamp = now + self.retry_timeout
 		self.gate.post.repost(session, ticket.data)
 		return
 	end
@@ -48,13 +49,13 @@ function mt:add_ticket(session, index, data)
 
 	-- change localtime to package index
 	data = string.pack("<I", s_index)..string.sub(data, 5)
-	local timestamp = skynet.now() + self.retry_timeout
+	local timestamp = now + self.retry_timeout
 	self.packages[s_index] = {sender=session, c_index=index, timestamp=timestamp}
 
-	local tdata = string.pack("<I", skynet.now()) .. data
-	user.tickets[index] = {data=tdata, confirm={}, count=0, s_index=s_index}
-	self.raw[s_index] = tdata
-	printf("%d send udp_reliable, s_index:%d", session, s_index)
+	data = string.pack("<I", now) .. data
+	user.tickets[index] = {data=data, confirm={}, count=0, s_index=s_index}
+	self.raw[s_index] = data
+	printf("%d send udp_reliable, s_index:%d, time:%d", session, s_index, now)
 	return data
 end
 

@@ -11,7 +11,7 @@ local heartbeat_freq = 10 -- 100ms
 local function init_room_data()
 	room = {
 		id = nil,
-		capacity = 4,
+		capacity = 8,
 		mapid = nil,
 		fighting = false,
 		winner = nil,
@@ -166,7 +166,7 @@ function accept.update(data, ptype, session)
 	if not data then return end
 
 	for s,v in pairs(users) do
-		gate.post.post(s, data)
+		gate.post.repost(s, data)
 	end
 end
 

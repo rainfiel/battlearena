@@ -7,7 +7,7 @@ local U
 local S = {}
 local SESSION = 0
 local package_timeout = 30 * 100	-- 0.5 mins
-local session_timeout = 3 * 60 * 100 -- 3 mins
+local session_timeout = 30 * 60 * 100 -- 3 mins
 
 --[[
 	8 bytes hmac   crypt.hmac_hash(key, session .. data)
