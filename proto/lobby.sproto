@@ -66,6 +66,10 @@
 .resp_go {
 	start_time 0 : integer
 }
+.resp_cut_seat {
+	ok 0 : boolean
+	room 1 : room
+}
 #### push msg types end
 
 
@@ -147,4 +151,11 @@ reach 8 {
 loading_done 9 {
 	request {}
 	response {}
+}
+cut_seat 10 {
+	request {
+	}
+	response {
+		resp 0 : resp_cut_seat
+	}
 }

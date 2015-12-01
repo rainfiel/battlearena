@@ -143,6 +143,12 @@ function client_request.query_current_room(msg, name)
 	end
 end
 
+function client_request.cut_seat(msg)
+	snax.printf("%s(session:%s) cut_seat", U.userid, U.session)
+	room.req.cut_seat(U.session)
+	return nil
+end
+
 function client_request.ready_to_fight(msg, name)
 	snax.printf("%s(session:%s) ready_to_fight", U.userid, U.session)
 	room.req.ready_to_fight(U.session)

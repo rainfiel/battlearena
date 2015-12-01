@@ -29,6 +29,15 @@ local function mate_count()
 	return n 
 end
 
+local function get_mate_by_index(idx)
+	for i=1, room.capacity do
+		local mate = room.mates[i]
+		if mate and mate.index == idx then
+			return mate
+		end
+	end
+end
+
 local function swat_count()
 	local n = 0
 	for i=1, room.capacity do
@@ -38,6 +47,25 @@ local function swat_count()
 		end
 	end
 	return n 
+end
+
+local function team_swat_count()
+	local max_seat = room.capacity / 2
+	local team_1 = 0
+	for i=1, room.capacity, 2 do
+		local mate = get_mate_by_index(i)
+		if mate then
+			team_1 = team_1 + (mate.swats and #mate.swats or 1)
+		end
+	end
+	local team_2 = 0
+	for i=2, room.capacity, 2 do
+		local mate = get_mate_by_index(i)
+		if mate then
+			team_2 = team_2 + (mate.swats and #mate.swats or 1)
+		end
+	end
+	return team_1, team_2
 end
 
 local function capacity()
@@ -60,15 +88,6 @@ local function get_mate(session)
 	for i=1, room.capacity do
 		local mate = room.mates[i]
 		if mate and mate.session == session then
-			return mate
-		end
-	end
-end
-
-local function get_mate_by_index(idx)
-	for i=1, room.capacity do
-		local mate = room.mates[i]
-		if mate and mate.index == idx then
 			return mate
 		end
 	end
@@ -200,6 +219,22 @@ function response.join(agent, secret, userid)
 	snax.printf("seat num:%d", mate.index)
 
 	return user.session
+end
+
+function response.cut_seat(session)
+	local capacity = room.capacity
+	local max_cnt = capacity // 2
+	local resp = {ok=false, room=room}
+	if session == room.mates[1].session and capacity > 2 then
+		local team_1, team_2 = team_swat_count()
+		if team_1 < max_cnt and team_2 < max_cnt then
+			if not get_mate_by_index(capacity) and not get_mate_by_index(capacity-1) then
+				resp.ok = true
+				room.capacity = room.capacity - 2
+			end
+		end
+	end
+	broadcast(nil, "resp_cut_seat", resp)
 end
 
 function response.leave(session)
