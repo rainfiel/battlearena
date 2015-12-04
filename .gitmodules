@@ -4,3 +4,6 @@
 [submodule "client/lsocket"]
 	path = client/lsocket
 	url = https://github.com/cloudwu/lsocket.git
+[submodule "server/clib/lua-lzma"]
+	path = server/clib/lua-lzma
+	url = https://github.com/rainfiel/lua-lzma.git

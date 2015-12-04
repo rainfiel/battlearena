@@ -3,6 +3,7 @@ local skynet = require "skynet"
 local sprotoloader = require "sprotoloader"
 local sproto = require "sproto"
 local msgqueue = require "msgqueue"
+local lzma = require "lzma"
 
 local roomkeeper
 local gate, room
@@ -174,6 +175,20 @@ end
 function client_request.reach(msg)
 	local resp = room.req.reach(U.session, msg)
 	return {resp=resp}
+end
+
+function client_request.log(msg)
+	local room_info = room.req.room_info()
+	local d = os.date("*t")
+	local fname = string.format("%d-%d-%d%d%d%d%d", room_info.id, U.session, d.year, d.month, d.day, d.hour, d.sec)
+	
+	local txt = lzma.uncompress(msg.log)
+
+	snax.printf("%s(session:%s) log file:%s", U.userid, U.session, fname)
+	local f = io.open(string.format("log/%s.log", fname), "w")
+	f:write(txt)
+	f:close()
+	return {}
 end
 
 local function dispatch_client(_,_,name,msg)
