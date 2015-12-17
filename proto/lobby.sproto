@@ -28,6 +28,8 @@
 	ready 2 : boolean
 	index 3 : integer
 	swats 4 : *swat
+	skill 5 : attacktypes
+	items 6 : *item
 }
 
 .room {
@@ -39,6 +41,17 @@
 	rseed 5 : integer
 	start_time 6 : integer
 	mates 7 : *mate
+}
+
+.item {
+	type 0 : string
+	data 1 : string
+}
+
+.role {
+	items 0 : *item
+	skill 1 : attacktypes
+	coins 2 : integer
 }
 #### common types end
 
@@ -165,5 +178,13 @@ log 11 {
 	}
 	response {
 
+	}
+}
+role_info 12 {
+	request {
+
+	}
+	response {
+		role 0 : role
 	}
 }

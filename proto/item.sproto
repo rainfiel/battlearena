@@ -1,0 +1,137 @@
+.armor_c1 {
+	name 0 : string
+	coveragePercent 1 : integer
+	degrees 2 : integer
+	piercingProtectionLevel 3 : integer
+}
+.armor {
+	name 0 : string
+	armor_c1 1 : *armor_c1
+	moveSpeedLocalModifierPercent 2 : integer
+	turnSpeedLocalModifierPercent 3 : integer
+}
+
+.attacktypes_c1 {
+	maxAimTime 0 : integer
+	followupShotAccuracyBonusPercent 1 : integer
+	name 2 : string
+	maxDistanceMeters 3 : integer
+	minAimTime 4 : integer
+	followupShotTime 5 : integer
+	resetTime 6 : integer
+	minDistanceMeters 7 : integer
+	minShots 8 : integer
+	maxShots 9 : integer
+	accuracyModifierPercent 10 : integer
+}
+.attacktypes {
+	shotguns 0 : attacktypes_c1
+	snipingrifles 1 : attacktypes_c1
+	pistols 2 : attacktypes_c1
+	rifles 3 : attacktypes_c1
+}
+
+.pistols {
+	name 0 : string
+	armorPiercingLevel 1 : integer
+	changeInTime 2 : integer
+	changeOutTime 3 : integer
+	closedBolt 4 : integer
+	cyclicReload 5 : integer
+	damagePerBullet 6 : integer
+	guardTime 7 : integer
+	moveSpeedLocalModifierPercent 8 : integer
+	muzzleDropDistanceMeters 9 : integer
+	numPellets 10 : integer
+	readyTime 11 : integer
+	reloadEmptyTime 12 : integer
+	reloadTime 13 : integer
+	roundsPerMagazine 14 : integer
+	roundsPerSecond 15 : integer
+	shotSoundMeters 16 : integer
+	silenced 17 : integer
+	spreadAt10Meters 18 : integer
+	turnSpeedLocalModifierPercent 19 : integer
+}
+
+.rifles {
+	name 0 : string
+	armorPiercingLevel 1 : integer
+	changeInTime 2 : integer
+	changeOutTime 3 : integer
+	closedBolt 4 : integer
+	cyclicReload 5 : integer
+	damagePerBullet 6 : integer
+	guardTime 7 : integer
+	moveSpeedLocalModifierPercent 8 : integer
+	muzzleDropDistanceMeters 9 : integer
+	numPellets 10 : integer
+	readyTime 11 : integer
+	reloadEmptyTime 12 : integer
+	reloadTime 13 : integer
+	roundsPerMagazine 14 : integer
+	roundsPerSecond 15 : integer
+	shotSoundMeters 16 : integer
+	silenced 17 : integer
+	spreadAt10Meters 18 : integer
+	turnSpeedLocalModifierPercent 19 : integer
+}
+
+.shield_c1 {
+	name 0 : string
+	coveragePercent 1 : integer
+	degrees 2 : integer
+	piercingProtectionLevel 3 : integer
+}
+.shield {
+	name 0 : string
+	moveSpeedLocalModifierPercent 1 : integer
+	shield_c1 2 : *shield_c1
+	turnSpeedLocalModifierPercent 3 : integer
+}
+
+.shotguns {
+	name 0 : string
+	armorPiercingLevel 1 : integer
+	changeInTime 2 : integer
+	changeOutTime 3 : integer
+	closedBolt 4 : integer
+	cyclicReload 5 : integer
+	damagePerBullet 6 : integer
+	guardTime 7 : integer
+	moveSpeedLocalModifierPercent 8 : integer
+	muzzleDropDistanceMeters 9 : integer
+	numPellets 10 : integer
+	readyTime 11 : integer
+	reloadEmptyTime 12 : integer
+	reloadTime 13 : integer
+	roundsPerMagazine 14 : integer
+	roundsPerSecond 15 : integer
+	shotSoundMeters 16 : integer
+	silenced 17 : integer
+	spreadAt10Meters 18 : integer
+	turnSpeedLocalModifierPercent 19 : integer
+}
+
+.snipingrifles {
+	name 0 : string
+	armorPiercingLevel 1 : integer
+	changeInTime 2 : integer
+	changeOutTime 3 : integer
+	closedBolt 4 : integer
+	cyclicReload 5 : integer
+	damagePerBullet 6 : integer
+	guardTime 7 : integer
+	moveSpeedLocalModifierPercent 8 : integer
+	muzzleDropDistanceMeters 9 : integer
+	numPellets 10 : integer
+	readyTime 11 : integer
+	reloadEmptyTime 12 : integer
+	reloadTime 13 : integer
+	roundsPerMagazine 14 : integer
+	roundsPerSecond 15 : integer
+	shotSoundMeters 16 : integer
+	silenced 17 : integer
+	spreadAt10Meters 18 : integer
+	turnSpeedLocalModifierPercent 19 : integer
+}

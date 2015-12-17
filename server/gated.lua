@@ -2,7 +2,7 @@ local msgserver = require "snax.msgserver"
 local crypt = require "crypt"
 local skynet = require "skynet"
 local snax = require "snax"
-local sprotoloader = require "sprotoloader"
+local sprotoloader = require "sprotoloader_x"
 
 local loginservice = tonumber(...)
 
@@ -87,6 +87,6 @@ function server.register_handler(name)
 	skynet.call(loginservice, "lua", "register_gate", servername, skynet.self())
 end
 
-sprotoloader.register("proto/lobby.sproto",1)
+sprotoloader.register(1, "proto/lobby.sproto", "proto/item.sproto")
 msgserver.start(server)
 

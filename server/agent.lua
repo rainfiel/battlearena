@@ -1,13 +1,15 @@
 local snax = require "snax"
 local skynet = require "skynet"
-local sprotoloader = require "sprotoloader"
+local sprotoloader = require "sprotoloader_x"
 local sproto = require "sproto"
 local msgqueue = require "msgqueue"
 local lzma = require "lzma"
+local item = require "item"
 
 local roomkeeper
 local gate, room
 local U = {}
+local role
 local proto
 
 local room_ready_response
@@ -26,6 +28,16 @@ end
 
 local function encode_type(typename, obj)
 	return proto:pencode(typename, obj)
+end
+
+local function default_proto(...)
+	local p = proto:default(...)
+	for k, v in pairs(p) do
+		if type(v) == "table" and v.__type then
+			rawset(p, k, default_proto(v.__type))
+		end
+	end
+	return p
 end
 
 local function leave_room()
@@ -96,7 +108,20 @@ function response.afk()
 	end
 end
 
+--requests
+-----------------------------------------------------------------------------
 local client_request = {}
+
+local function load_role()
+	local role = default_proto("role")
+	item.default_item(role, proto)
+
+	return {role=role}
+end
+
+function client_request.role_info()
+	return load_role()
+end
 
 function client_request.join(msg)
 	local handle, roomid, host, port = roomkeeper.req.apply(msg.room, msg.map)
@@ -192,7 +217,7 @@ function client_request.log(msg)
 end
 
 local function dispatch_client(_,_,name,msg)
-	local f = assert(client_request[name])
+	local f = assert(client_request[name], name)
 	local obj = f(msg, name)
 	if obj ~= nil then
 		skynet.ret(encode_proto(name, obj))
