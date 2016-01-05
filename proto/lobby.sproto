@@ -13,13 +13,12 @@
 	hp 1 : integer
 	origin 2 : string
 	rotation 3 : integer
-	grenades 4 : grenades
-	breaching_charge 5 : integer
-	index 6 : integer
-	pistol 7: string
-	weapon 8 : string
-	shield 9 : string
-	armor 10 : string
+	index 4 : integer
+	turnSpeedLocalModifierPercent 5 : integer
+	moveSpeedLocalModifierPercent 6 : integer
+	default_weapon 7 : *integer
+	ammo 8 : integer
+	recover_times 9 :integer
 }
 
 .mate {
@@ -44,14 +43,17 @@
 }
 
 .item {
-	type 0 : string
-	data 1 : string
+	id 0 : integer
+	type 1 : string
+	data 2 : string
 }
 
 .role {
 	items 0 : *item
 	skill 1 : attacktypes
 	coins 2 : integer
+	swats 3 : *swat
+	index 4 : integer
 }
 #### common types end
 
@@ -186,5 +188,27 @@ role_info 12 {
 	}
 	response {
 		role 0 : role
+	}
+}
+upgrade_attr 13 {
+	request {
+		id 0 : integer
+		attr_group_id 1: integer
+		attr_group_idx 2 : integer
+		attr 3 : string
+		lv_count 4 : integer
+	}
+	response {
+		ok 0 : boolean
+		item 1 : item
+	}
+}
+buy_item 14 {
+	request {
+		name 0 : string
+	}
+	response {
+		ok 0 : boolean
+		item 1 : item
 	}
 }

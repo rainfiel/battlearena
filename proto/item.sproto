@@ -1,37 +1,55 @@
 .armor_c1 {
-	name 0 : string
-	coveragePercent 1 : integer
-	degrees 2 : integer
-	piercingProtectionLevel 3 : integer
+	coveragePercent 0 : integer
+	degrees 1 : integer
+	piercingProtectionLevel 2 : integer
 }
 .armor {
 	name 0 : string
 	armor_c1 1 : *armor_c1
-	moveSpeedLocalModifierPercent 2 : integer
-	turnSpeedLocalModifierPercent 3 : integer
+	armor_val 2 : integer
+	moveSpeedLocalModifierPercent 3 : integer
+	turnSpeedLocalModifierPercent 4 : integer
+	type 5 : string
 }
 
 .attacktypes_c1 {
-	maxAimTime 0 : integer
-	followupShotAccuracyBonusPercent 1 : integer
-	name 2 : string
+	name 0 : string
+	minAimTime 1 : integer
+	followupShotTime 2 : integer
 	maxDistanceMeters 3 : integer
-	minAimTime 4 : integer
-	followupShotTime 5 : integer
-	resetTime 6 : integer
-	minDistanceMeters 7 : integer
-	minShots 8 : integer
-	maxShots 9 : integer
-	accuracyModifierPercent 10 : integer
+	resetTime 4 : integer
+	priority 5 : integer
+	minShots 6 : integer
+	maxShots 7 : integer
+	accuracyModifierPercent 8 : integer
+	maxAimTime 9 : integer
+	followupShotAccuracyBonusPercent 10 : integer
+	minDistanceMeters 11 : integer
 }
 .attacktypes {
-	shotguns 0 : attacktypes_c1
-	snipingrifles 1 : attacktypes_c1
-	pistols 2 : attacktypes_c1
-	rifles 3 : attacktypes_c1
+	pistol 2 : attacktypes_c1
+	rifle 1 : attacktypes_c1
+	shotgun 3 : attacktypes_c1
+	snipingrifle 0 : attacktypes_c1
 }
 
-.pistols {
+.grenade_c1 {
+	effect_max_val 0 : integer
+	effect_min_val 1 : integer
+	effect_range 2 : integer
+	effect_type 3 : string
+}
+.grenade {
+	name 0 : string
+	explosion_time 1 : integer
+	grenade_c1 2 : *grenade_c1
+	moveSpeedLocalModifierPercent 3 : integer
+	throw_time 4 : integer
+	turnSpeedLocalModifierPercent 5 : integer
+	type 6 : string
+}
+
+.pistol {
 	name 0 : string
 	armorPiercingLevel 1 : integer
 	changeInTime 2 : integer
@@ -52,9 +70,10 @@
 	silenced 17 : integer
 	spreadAt10Meters 18 : integer
 	turnSpeedLocalModifierPercent 19 : integer
+	type 20 : string
 }
 
-.rifles {
+.rifle {
 	name 0 : string
 	armorPiercingLevel 1 : integer
 	changeInTime 2 : integer
@@ -75,22 +94,65 @@
 	silenced 17 : integer
 	spreadAt10Meters 18 : integer
 	turnSpeedLocalModifierPercent 19 : integer
+	type 20 : string
+}
+
+.rigid_attacktypes {
+	name 0 : string
+	minAimTime 1 : integer
+	followupShotTime 2 : integer
+	maxDistanceMeters 3 : integer
+	resetTime 4 : integer
+	priority 5 : integer
+	minShots 6 : integer
+	maxAimTime 7 : integer
+	maxShots 8 : integer
+	followupShotAccuracyBonusPercent 9 : integer
+	minDistanceMeters 10 : integer
+	accuracyModifierPercent 11 : integer
+}
+
+.rigid_weapon {
+	name 0 : string
+	reloadEmptyTime 1 : integer
+	type 2 : string
+	cyclicReload 3 : integer
+	guardTime 4 : integer
+	roundsPerMagazine 5 : integer
+	turnSpeedLocalModifierPercent 6 : integer
+	rigid_type 7 : string
+	atttypes 8 : *string
+	numPellets 9 : integer
+	muzzleDropDistanceMeters 10 : integer
+	spreadAt10Meters 11 : integer
+	damagePerBullet 12 : integer
+	reloadTime 13 : integer
+	shotSoundMeters 14 : integer
+	silenced 15 : integer
+	roundsPerSecond 16 : integer
+	moveSpeedLocalModifierPercent 17 : integer
+	changeInTime 18 : integer
+	armorPiercingLevel 19 : integer
+	readyTime 20 : integer
+	closedBolt 21 : integer
+	changeOutTime 22 : integer
 }
 
 .shield_c1 {
-	name 0 : string
-	coveragePercent 1 : integer
-	degrees 2 : integer
-	piercingProtectionLevel 3 : integer
+	coveragePercent 0 : integer
+	degrees 1 : integer
+	piercingProtectionLevel 2 : integer
 }
 .shield {
 	name 0 : string
-	moveSpeedLocalModifierPercent 1 : integer
-	shield_c1 2 : *shield_c1
-	turnSpeedLocalModifierPercent 3 : integer
+	armor_val 1 : integer
+	moveSpeedLocalModifierPercent 2 : integer
+	shield_c1 3 : *shield_c1
+	turnSpeedLocalModifierPercent 4 : integer
+	type 5 : string
 }
 
-.shotguns {
+.shotgun {
 	name 0 : string
 	armorPiercingLevel 1 : integer
 	changeInTime 2 : integer
@@ -111,9 +173,10 @@
 	silenced 17 : integer
 	spreadAt10Meters 18 : integer
 	turnSpeedLocalModifierPercent 19 : integer
+	type 20 : string
 }
 
-.snipingrifles {
+.snipingrifle {
 	name 0 : string
 	armorPiercingLevel 1 : integer
 	changeInTime 2 : integer
@@ -134,4 +197,16 @@
 	silenced 17 : integer
 	spreadAt10Meters 18 : integer
 	turnSpeedLocalModifierPercent 19 : integer
+	type 20 : string
+}
+
+.utility {
+	name 0 : string
+	cast_time 1 : integer
+	pic 2 : string
+	arg2 3 : integer
+	cd 4 : integer
+	title 5 : string
+	arg1 6 : integer
+	type 7 : string
 }

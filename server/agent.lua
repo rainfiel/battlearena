@@ -1,10 +1,16 @@
 local snax = require "snax"
 local skynet = require "skynet"
-local sprotoloader = require "sprotoloader_x"
-local sproto = require "sproto"
 local msgqueue = require "msgqueue"
 local lzma = require "lzma"
 local item = require "item"
+local sprotoloader = require "sprotoloader_x"
+local role_mgr = require "role"
+
+local proto_wrapper = require "proto_wrapper"
+local decode_proto
+local encode_proto
+local encode_type
+local default_proto
 
 local roomkeeper
 local gate, room
@@ -14,31 +20,6 @@ local proto
 
 local room_ready_response
 local response_queue
-
-local function decode_proto(msg, sz)
-	local blob = sproto.unpack(msg,sz)
-	local type, offset = string.unpack("<I4", blob)
-	local ret, name = proto:request_decode(type, blob:sub(5))
-	return name, ret
-end
-
-local function encode_proto(name, obj)
-	return sproto.pack(proto:response_encode(name, obj))
-end
-
-local function encode_type(typename, obj)
-	return proto:pencode(typename, obj)
-end
-
-local function default_proto(...)
-	local p = proto:default(...)
-	for k, v in pairs(p) do
-		if type(v) == "table" and v.__type then
-			rawset(p, k, default_proto(v.__type))
-		end
-	end
-	return p
-end
 
 local function leave_room()
 	if not room then return {id=U.session} end
@@ -112,15 +93,14 @@ end
 -----------------------------------------------------------------------------
 local client_request = {}
 
-local function load_role()
-	local role = default_proto("role")
-	item.default_item(role, proto)
-
-	return {role=role}
+function client_request.role_info()
+	role = role_mgr.load_role(U.userid)
+	return {role=role.raw}
 end
 
-function client_request.role_info()
-	return load_role()
+function client_request.buy_item(name)
+	local ok, item = role:buy_item(name)
+	return {ok=ok, item=item}
 end
 
 function client_request.join(msg)
@@ -225,14 +205,18 @@ local function dispatch_client(_,_,name,msg)
 end
 
 function init()
+	proto = sprotoloader.load(1)
+	proto_wrapper.init(proto)
+
+	decode_proto = proto_wrapper.decode_proto
+	encode_proto = proto_wrapper.encode_proto
+	encode_type = proto_wrapper.encode_type
+	default_proto = proto_wrapper.default
+
 	skynet.register_protocol {
 		name = "client",
 		id = skynet.PTYPE_CLIENT,
 		unpack = decode_proto,
 	}
-
-	-- todo: dispatch client message
 	skynet.dispatch("client", dispatch_client)
-
-	proto = sprotoloader.load(1)
 end
