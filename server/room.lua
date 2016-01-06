@@ -200,7 +200,7 @@ end
 local function sort_mate(a, b)
 	return a.index < b.index
 end
-function response.join(agent, secret, userid)
+function response.join(agent, secret, userid, role)
 	if is_full() then
 		return false	-- max number of room
 	end
@@ -213,12 +213,13 @@ function response.join(agent, secret, userid)
 	}
 	users[user.session] = user
 
-	local mate = {name=userid, session=user.session, index=find_seat(), ready=false, swats=nil}
+	local mate = {name=userid, session=user.session, index=find_seat(), 
+		ready=false, swats=role.swats, items=role.items, skill=role.skill}
 	table.insert(room.mates, mate)
 	table.sort(room.mates, sort_mate)
 	snax.printf("seat num:%d", mate.index)
 
-	return user.session
+	return user.session, room
 end
 
 function response.cut_seat(session)

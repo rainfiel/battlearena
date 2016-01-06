@@ -79,6 +79,7 @@ local function new_role_proto()
 			if t then swat[m] = t end
 		end
 		swat.index = k
+		swat.ammo = data.const.init_ammo
 		swat.default_weapon=default_weapon
 		table.insert(role.swats, swat)
 	end

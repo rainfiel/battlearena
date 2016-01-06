@@ -44,6 +44,8 @@ function response.login(source, uid, sid, secret)
 	U.userid = uid
 	U.subid = sid
 	U.key = secret
+
+	role = role_mgr.req.load_role(uid)
 	-- you may load user data from database
 end
 
@@ -94,10 +96,8 @@ end
 -----------------------------------------------------------------------------
 local client_request = {}
 
+--invoke after login
 function client_request.role_info()
-	if not role then
-		role = role_mgr.req.load_role(U.userid)
-	end
 	return {role=role.raw}
 end
 
@@ -119,17 +119,20 @@ function client_request.upgrade_attr(msg)
 	return {ok=ok, item=item, coins=coins}
 end
 
+
+--battle requests
+--------------------------------------------
 function client_request.join(msg)
 	local handle, roomid, host, port = roomkeeper.req.apply(msg.room, msg.map)
 	if not handle then
 		return nil  --TODO handle error
 	end
 	local r = snax.bind(handle , "room")
-	local session = assert(r.req.join(skynet.self(), U.key, U.userid))
+	local session, room_info = assert(r.req.join(skynet.self(), U.key, U.userid, role.raw))
 	U.session = session
 	room = r
 	snax.printf("%s joined to room %d(mapid %d, session %s)", U.userid, roomid, msg.map, session)
-	return { session = session, host = host, port = port }
+	return { session=session, host=host, port=port, room=room_info }
 end
 
 function client_request.cancel_join(msg)

@@ -36,7 +36,14 @@ local function get_price(name)
 	return assert(price[name], name)
 end
 
+local const = {}
+local config = read_bin("config")
+for k, v in pairs(config) do
+	rawset(const, k, v.value)
+end
+
 return {
 	get_item=get_item,
 	get_price=get_price,
+	const=const
 }
