@@ -1,15 +1,21 @@
 
 local snax = require "snax"
-local proto = require "proto_wrapper"
+local proto_wrapper = require "proto_wrapper"
+local sprotoloader = require "sprotoloader_x"
 
 local role_mt = {}
 role_mt.__index = role_mt
+
+function role_mt:init()
+	self.id = self.name
+end
 
 function role_mt:buy_item(name)
 	return false
 end
 
 -------------------------------------------------------------------
+local proto
 local roles = {}
 local default_cfg = {{name="Friendly_Pointman",hp=100,
 										items={{name="P226 Pistol", type="pistol", default=true},
@@ -21,19 +27,19 @@ local function new_item(name, item_type, id)
 	-- assert(d, name)
 	-- local item_type = d.rigid_type and d.rigid_type or d.type
 
-	local obj = proto.default("item")
+	local obj = proto_wrapper.default("item")
 	obj.id = id
 	obj.type = item_type
 
-	local i = proto.default(item_type)
+	local i = proto_wrapper.default(item_type)
 	i.name = name
-	obj.data = proto.encode_type(item_type, i)
+	obj.data = proto_wrapper.encode_type(item_type, i)
 	return obj
 end
 
 local function new_role_proto()
 	local cfgs = default_cfg
-	local role = proto.default("role")
+	local role = proto_wrapper.default("role")
 	local item_count = 0
 	for k, v in ipairs(cfgs) do
 		local default_weapon={}
@@ -47,7 +53,7 @@ local function new_role_proto()
 			end
 		end
 
-		local swat = proto.default("swat")
+		local swat = proto_wrapper.default("swat")
 		for m, n in pairs(swat) do
 			local t = rawget(v, m)
 			if t then swat[m] = t end
@@ -72,18 +78,23 @@ local function load(name)
 	local raw = f:read("a")
 	f:close()
 	if raw then
-		return proto.decode_type("role", raw)
+		return proto_wrapper.decode_type("role", raw)
 	end
 end
 
 local function save(name, data)
-	local raw = proto.encode_type("role", data)
+	local raw = proto_wrapper.encode_type("role", data)
 	local f = io.open(string.format("role/%s", name), "wb")
 	f:write(raw)
 	f:close()
 end
 
-local function load_role(name)
+local function get_role(id)
+	return roles[id]
+end
+
+--------------------------------------------------------
+function response.load_role(name)
 	local inst = roles[name]
 	if inst then return inst end
 	local data = load(name)
@@ -92,11 +103,18 @@ local function load_role(name)
 		data = new_role_proto()
 		save(name, data)
 	end
-	local inst = setmetatable({raw=data}, role_mt)
-	roles[name] = inst
+	local inst = setmetatable({raw=data,name=name}, role_mt)
+	inst:init()
+	roles[inst.id] = inst
 	return inst
 end
 
-return {
-	load_role=load_role,
-}
+function response.buy_item(id, name)
+	local role = get_role(id)
+	return role:buy_item(name)
+end
+
+function init()
+	proto = sprotoloader.load(1)
+	proto_wrapper.init(proto)
+end

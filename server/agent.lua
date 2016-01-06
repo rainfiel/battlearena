@@ -4,7 +4,6 @@ local msgqueue = require "msgqueue"
 local lzma = require "lzma"
 local item = require "item"
 local sprotoloader = require "sprotoloader_x"
-local role_mgr = require "role"
 
 local proto_wrapper = require "proto_wrapper"
 local decode_proto
@@ -13,6 +12,7 @@ local encode_type
 local default_proto
 
 local roomkeeper
+local role_mgr
 local gate, room
 local U = {}
 local role
@@ -38,6 +38,7 @@ end
 function response.login(source, uid, sid, secret)
 	-- you may use secret to make a encrypted data stream
 	roomkeeper = snax.queryservice "roomkeeper"
+	role_mgr = snax.queryservice "role"
 	snax.printf("%s is login", uid)
 	gate = source
 	U.userid = uid
@@ -94,12 +95,17 @@ end
 local client_request = {}
 
 function client_request.role_info()
-	role = role_mgr.load_role(U.userid)
+	if not role then
+		role = role_mgr.req.load_role(U.userid)
+	end
 	return {role=role.raw}
 end
 
 function client_request.buy_item(name)
-	local ok, item = role:buy_item(name)
+	if not role then
+		return {ok=false}
+	end
+	local ok, item = role_mgr.req.buy_item(role.id, name)
 	return {ok=ok, item=item}
 end
 

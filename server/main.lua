@@ -8,6 +8,8 @@ skynet.start(function()
 
 	local loginserver = skynet.newservice("logind")
 	local gate = skynet.newservice("gated", loginserver)
+	
+	snax.uniqueservice("role")
 
 	skynet.call(gate, "lua", "open" , {
 		address = skynet.getenv "gate_address",
