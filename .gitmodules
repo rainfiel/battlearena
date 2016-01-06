@@ -7,3 +7,6 @@
 [submodule "server/clib/lua-lzma"]
 	path = server/clib/lua-lzma
 	url = https://github.com/rainfiel/lua-lzma.git
+[submodule "common_data"]
+	path = common_data
+	url = git@rainfiel.com:common_data.git

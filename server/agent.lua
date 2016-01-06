@@ -101,12 +101,22 @@ function client_request.role_info()
 	return {role=role.raw}
 end
 
-function client_request.buy_item(name)
+function client_request.buy_item(msg)
 	if not role then
 		return {ok=false}
 	end
-	local ok, item = role_mgr.req.buy_item(role.id, name)
-	return {ok=ok, item=item}
+	local ok, coins, item = role_mgr.req.buy_item(role.id, msg.name)
+	snax.printf("%s buy_item:%s, rlt:%s", U.userid, msg.name, ok)
+	return {ok=ok, item=item, coins=coins}
+end
+
+function client_request.upgrade_attr(msg)
+	if not role then
+		return {ok=false}
+	end
+	local ok, coins, item = role_mgr.req.upgrade_attr(role.id, msg)
+	snax.printf("%s upgrade_attr:%s, rlt:%s", U.userid, msg.id, ok)
+	return {ok=ok, item=item, coins=coins}
 end
 
 function client_request.join(msg)

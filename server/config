@@ -9,7 +9,7 @@ lualoader = "skynet/lualib/loader.lua"
 cpath = "skynet/cservice/?.so"
 snax = "server/?.lua"
 lua_path = "skynet/lualib/?.lua;server/?.lua"
-lua_cpath = "skynet/luaclib/?.so;server/?.so"
+lua_cpath = "skynet/luaclib/?.so;server/clib/?.so"
 -- daemon = "./skynet.pid"
 
 login_address = "$LOGIN_ADDRESS"

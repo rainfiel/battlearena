@@ -87,6 +87,6 @@ function server.register_handler(name)
 	skynet.call(loginservice, "lua", "register_gate", servername, skynet.self())
 end
 
-sprotoloader.register(1, "proto/lobby.sproto", "proto/item.sproto")
+sprotoloader.register(1, "common_data/lobby.sproto", "common_data/item.sproto")
 msgserver.start(server)
 
