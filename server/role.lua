@@ -57,7 +57,7 @@ local function encode_item(obj)
 	obj.data = proto_wrapper.encode_type(obj.type, obj.plain)
 end
 
-local function new_role_proto()
+local function new_role_proto(name)
 	local cfgs = default_cfg
 	local role = proto_wrapper.default("role")
 	local item_count = 0
@@ -90,6 +90,7 @@ local function new_role_proto()
 
 	role.index = 1
 	role.coins = 50000
+	role.name = name
 	return role
 end
 
@@ -190,7 +191,7 @@ function response.load_role(name)
 	local data = load(name)
 	if not data then
 		snax.printf("create new role:"..name)
-		data = new_role_proto()
+		data = new_role_proto(name)
 		save(name, data)
 	end
 	local inst = setmetatable({raw=data,name=name}, role_mt)

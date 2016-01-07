@@ -11,7 +11,7 @@ local heartbeat_freq = 10 -- 100ms
 local function init_room_data()
 	room = {
 		id = nil,
-		capacity = 8,
+		capacity = 2,
 		mapid = nil,
 		fighting = false,
 		winner = nil,
@@ -218,6 +218,10 @@ function response.join(agent, secret, userid, role)
 	table.insert(room.mates, mate)
 	table.sort(room.mates, sort_mate)
 	snax.printf("seat num:%d", mate.index)
+
+	if mate_count() > 1 then
+		broadcast(session, "resp_mate_change", {type="add", room=room})
+	end
 
 	return user.session, room
 end
