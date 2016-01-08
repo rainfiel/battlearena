@@ -105,27 +105,32 @@ function client_request.buy_item(msg)
 	if not role then
 		return {ok=false}
 	end
-	local ok, coins, item = role_mgr.req.buy_item(role.id, msg.name)
-	snax.printf("%s buy_item:%s, rlt:%s", U.userid, msg.name, ok)
-	return {ok=ok, item=item, coins=coins}
+	local ok, new_role, item = role_mgr.req.buy_item(role.id, msg.name)
+	role = new_role
+	snax.printf("%s buy_item:%s, rlt:%s, %s", U.userid, msg.name, ok, #role.items)
+	return {ok=ok, item=item, coins=role.raw.coins}
 end
 
 function client_request.upgrade_attr(msg)
 	if not role then
 		return {ok=false}
 	end
-	local ok, coins, item = role_mgr.req.upgrade_attr(role.id, msg)
+	local ok, new_role, item = role_mgr.req.upgrade_attr(role.id, msg)
+	role = new_role
 	snax.printf("%s upgrade_attr:%s, rlt:%s", U.userid, msg.id, ok)
-	return {ok=ok, item=item, coins=coins}
+	return {ok=ok, item=item, coins=role.raw.coins}
 end
 
 
 --battle requests
 --------------------------------------------
 function client_request.join(msg)
+	if room then
+		return {session=-1}
+	end
 	local handle, roomid, host, port = roomkeeper.req.apply(msg.room, msg.map)
 	if not handle then
-		return nil  --TODO handle error
+		return {session=-2}
 	end
 	local r = snax.bind(handle , "room")
 	local session, room_info = assert(r.req.join(skynet.self(), U.key, U.userid, role.raw))
@@ -143,8 +148,17 @@ end
 
 function client_request.leave(msg)
 	snax.printf("%s(session:%s) leaved room", U.userid, U.session)
-	local obj = leave_room()
-	return {resp=obj}
+	leave_room()
+	local rcd = msg.kill_record
+	if rcd then
+		local resp, new_role = role_mgr.req.battle_result(role.id, rcd)
+		role = new_role
+		snax.printf("%s(session:%s) battle result: coins(%d), kill(%d), assist(%d), death(%d)",
+			U.userid, U.session, resp.coins, rcd.player or 0, rcd.assist or 0, rcd.death or 0)
+		return {resp=resp}
+	else
+		return {}
+	end
 end
 
 function client_request.report_formation(msg)

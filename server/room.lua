@@ -11,7 +11,7 @@ local heartbeat_freq = 10 -- 100ms
 local function init_room_data()
 	room = {
 		id = nil,
-		capacity = 2,
+		capacity = 8,
 		mapid = nil,
 		fighting = false,
 		winner = nil,

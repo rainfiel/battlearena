@@ -126,6 +126,7 @@ function role_mt:add_item(name)
 		local id = #self.items + 1
 		item = new_item(name, id)
 		table.insert(self.items, item)
+		snax.printf(".....:%s", tostring(self.items))
 		self:save()
 	end
 	return item
@@ -138,7 +139,7 @@ function role_mt:buy_item(name)
 	if now_coins >= price then
 		self.raw.coins = now_coins - price
 		local item = self:add_item(name)
-		return true, self.raw.coins, item
+		return true, self, item
 	else
 		return false
 	end
@@ -168,7 +169,7 @@ function role_mt:upgrade_attr(id, group_id, group_idx, attr, lv_count)
 			self.raw.coins = now - cost
 			group[attr] = new_lv
 			self:save()
-			return true, self.raw.coins, obj
+			return true, self, obj
 		else
 			return false
 		end
@@ -209,6 +210,16 @@ function response.upgrade_attr(id, msg)
 	local role = get_role(id)
 	return role:upgrade_attr(msg.id, msg.attr_group_id, 
 													 msg.attr_group_idx, msg.attr, msg.lv_count)
+end
+
+function response.battle_result(id, rcd)
+	local role = get_role(id)
+	local coin =  (rcd.player or 0) * data.const.player_coin
+							+ (rcd.assist or 0) * data.const.assist_coin
+							+ (rcd.death or 0) * data.const.death_coin
+	coin = math.max(0, coin)
+	role.raw.coins = role.raw.coins + coin
+	return {coins=coin}, role
 end
 
 function init()
