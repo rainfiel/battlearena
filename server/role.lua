@@ -4,11 +4,27 @@ local data = require "data"
 local proto_wrapper = require "proto_wrapper"
 local sprotoloader = require "sprotoloader_x"
 
+
+local function print_tbl(tbl)
+	local dbg = {}
+	for k, v in pairs(tbl) do
+		if type(v) == "table" then
+			table.insert(dbg, tostring(k).."="..print_tbl(v).."\n")
+		else
+			table.insert(dbg, tostring(k).."="..tostring(v))
+		end
+	end
+	return "{"..table.concat(dbg, ",").."}"
+end
+
+
 local proto
 local roles = {}
 local default_cfg = {{name="Friendly_Pointman",hp=100,
 										items={{name="P226 Pistol", default=true},
-										{name="Raider Vest", default=true}}
+										{name="Raider Vest", default=true},
+										{name="Flashbang", count=0},
+										{name="Frag Grenade", count=0}}
 										}}
 
 local function load(name)
@@ -33,17 +49,18 @@ local function get_role(id)
 end
 
 -------------------------------------------------------------------
-local function new_item(name, id)
+local function new_item(name, id, count)
 	local d = data.get_item(name)
 	local item_type = d.rigid_type and d.rigid_type or d.type
 
 	local obj = proto_wrapper.default("item")
 	obj.id = id
 	obj.type = item_type
-	obj.count = 1
+	obj.count = count or 1
 
 	local i = proto_wrapper.default(item_type)
 	i.name = name
+	i.type = item_type
 	obj.data = proto_wrapper.encode_type(item_type, i)
 	obj.plain = i
 	return obj
@@ -66,7 +83,7 @@ local function new_role_proto(name)
 		if v.items then
 			for m, n in ipairs(v.items) do
 				item_count = item_count + 1
-				table.insert(role.items, new_item(n.name, item_count))
+				table.insert(role.items, new_item(n.name, item_count, n.count or 1))
 				if n.default then
 					table.insert(default_weapon, item_count)
 				end
@@ -85,7 +102,7 @@ local function new_role_proto(name)
 	end
 	for k, v in ipairs(cfgs.items or {}) do
 		item_count = item_count + 1
-		table.insert(role.items, new_item(v.name, item_count))
+		table.insert(role.items, new_item(v.name, item_count, n.count or 1))
 	end
 
 	role.index = 1
@@ -126,7 +143,6 @@ function role_mt:add_item(name)
 		local id = #self.items + 1
 		item = new_item(name, id)
 		table.insert(self.items, item)
-		snax.printf(".....:%s", tostring(self.items))
 		self:save()
 	end
 	return item
@@ -153,7 +169,16 @@ function role_mt:upgrade_attr(id, group_id, group_idx, attr, lv_count)
 	local _data = data.get_item(group.name)
 
 	if group_id > 0 then
-		group = rawget(group, string.format("%s_c%d", obj.type, group_id))
+		local child_name = string.format("%s_c%d", obj.type, group_id)
+		if not group[child_name] then group[child_name] = {} end
+		group = rawget(group, child_name)
+		if not group[group_idx] then
+			for k=1, group_idx do
+				if not group[k] then
+					group[k] = proto_wrapper.default(child_name)
+				end
+			end
+		end
 		group = group[group_idx]
 		_data = _data[group_idx]
 	end
@@ -219,6 +244,7 @@ function response.battle_result(id, rcd)
 							+ (rcd.death or 0) * data.const.death_coin
 	coin = math.max(0, coin)
 	role.raw.coins = role.raw.coins + coin
+	role:save()
 	return {coins=coin}, role
 end
 
